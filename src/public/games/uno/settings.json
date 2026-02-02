@@ -1,0 +1,13 @@
+{
+    "wrongCardPenality": 2,
+    "interceptions": "on",
+    "liar": "off",
+    "liarOponentPenality": 2,
+    "liarSelfPenality": 2,
+    "twins": "alike",
+    "counterColor": "off",
+    "stackPlusFour": "off",
+    "jokerCancelsPlusTwo": "on",
+    "counterUnoPenality": 2,
+    "startCards": 7
+}
