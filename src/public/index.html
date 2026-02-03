@@ -5,16 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Card Games</title>
     <!-- <link rel="stylesheet" type="text/css" href="./styles.css"> -->
-    <!--  -->
     <style>
-        body {
-        }
-        center {
+        .list {
             display: flex;
             justify-content: space-between;
             flex-wrap: wrap;
         }
-        center > div {
+        .list > div {
             border: 2px solid gray;
             border-radius: 5px;
             padding: 20px;
@@ -27,7 +24,7 @@
             overflow: hidden;
             transition: width 0.3s ease, height 0.3s ease;
         }
-        center > div:not(.expand)::after {
+        .list > div::after {
             content: '';
             position: absolute;
             top: 50%;
@@ -38,21 +35,19 @@
             transform: translate(-50%, -50%);
             transition: width 0.4s ease, height 0.4s ease;
         }
-        center > div:not(.expand):hover::after {
+        .list > div:hover::after {
             width: 200%;
             height: 200%;
-        }
-        center > div.expand {
-            text-align: left;
-            width: 230px;
-            /*height: 220px; /* double */*/
         }
     </style>
 </head>
 <body>
-    <center id="list"></center>
+    <center><h1>Games</h1></center>
+    <center class="list"></center>
     <hr>
+    <center><h1>Public Rooms</h1></center>
     <input placeholder="Search">
+    <center class="list"></center>
     <script src="./index.js"></script>
 </body>
 </html>

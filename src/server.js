@@ -27,6 +27,11 @@ const DefaultConfig = {
     code: "",
     maxPlayers: 100
 };
+const PayloadType = {
+    GAME_STATUS_UPDATE: 0,
+    ROOM_STATUS_UPDATE: 1,
+};
+
 let maxRoomId = 0;
 const ipToRoom = new Map, idToRoom = new Map;
 const rooms = new Set;
@@ -96,10 +101,13 @@ setInterval(() => {
     for (const ws of realtimeClients) {
         const id = ~~(Math.random() * 3);
         ws.send(JSON.stringify({
-            id: games[id].id,
-            name: games[id].name,
-            waiting: ~~(Math.random() * 20),
-            running: ~~(Math.random() * 20)
+            type: PayloadType.GAME_STATUS_UPDATE,
+            data: {
+                id: games[id].id,
+                name: games[id].name,
+                waiting: ~~(Math.random() * 20),
+                running: ~~(Math.random() * 20)
+            }
         }));
     }
 }, 1000);
