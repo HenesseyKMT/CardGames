@@ -1,5 +1,3 @@
-console.log('Loaded main');
-
 const config = {
     handsDisplayCompact: false,
 }
@@ -99,7 +97,7 @@ function moveFlipSwap(el, x, y, newBg, duration = 1000) {
     return anim
 }
 
-const ws = new WebSocket(`ws://localhost:8888${location.pathname}${location.search}&nickname=${prompt('Nickname?')}`);
+const ws = new WebSocket(`ws://localhost:8888${location.search}&nickname=${prompt('Nickname?')}`);
 ws.onmessage = message => {
     const data = JSON.parse(message.data);
     switch (data.type) {

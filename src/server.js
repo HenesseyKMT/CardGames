@@ -50,13 +50,25 @@ class Room {
         idToRoom.set(this.id, this);
         updateRoomStatus(this);
     }
-    join(ws, req) {
+    // NOTE: maybe would be better as a WebSocket method
+    join(ws, req, code) {
         if (this.clients.size === this.settings.maxPlayers)
             return ws.close(1006, 'Room Full');
-        // if (this.settings.public === State.OFF && )
-        //     return ws.close(1006, 'Room Full');
-        // if (this.clients.size === this.settings.maxPlayers)
-        //     return ws.close(1006, 'Room Full');
+        if (this.settings.public === State.OFF && this.settings.code !== code)
+            return ws.close(1006, 'Wrong code');
+        if (ws.ip !== this.ownerIp) {
+            ipToRoom.get(ws.ip)?.leave(ws);
+            ipToRoom.set(ws.ip, this);
+        }
+        this.clients.add(ws);
+        updateRoomStatus(this);
+    }
+    leave(ws) {
+        if (!this.clients.delete(ws)) return;
+        if (ws.ip === this.ownerIp) return this.destroy();
+        ipToRoom.delete(ws.ip);
+        this.clients.delete(ws);
+        updateRoomStatus(this);
     }
     destroy() {
         for (const ws of this.clients)
@@ -147,13 +159,18 @@ wss.on('connection', (ws, req) => {
     if (req.url === '/realtime') {
         realtimeClients.add(ws);
         ws.on('message', () => {
-            ws.close(1006, 'Unauthorized');
+            ws.close(1009, 'Unauthorized');
         });
-    } else if (req.url.startsWith('/games')) {
-        // "/games/.../?id=...&nickname=...&code=..."
-        const [,, game, params] = req.url.split('/');
-        const u = new URLSearchParams(params);
-        console.log(game, u.get('id'), u.get('nickname', ''), u.get('code'));
+    } else {
+        const u = new URLSearchParams(req.url.split('?')[1]);
+        const id = u.get('id') || 0,
+            code = u.get('code') || '';
+        const room = idToRoom.get(id);
+        if (!room) return ws.close(1009, 'Unknown room');
+        ws.ip = ws._socket.remoteAddress;
+        ws.nickname = u.get('nickname') || '';
+        room.join(ws, req, code);
+        ws.on('close', () => room.leave(ws));
     }
 });
 
