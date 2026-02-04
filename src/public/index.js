@@ -1,39 +1,34 @@
-const PayloadType = {
-    GAME_STATUS_UPDATE: 0,
-    ROOM_STATUS_UPDATE: 1,
-    ROOM_STATUS_DELETE: 2,
-};
-
-let games, rooms;
 const gameItems = {},
-    roomItems = {};
-const [gamesList, roomsList] = document.querySelectorAll('.list');
-const realtime = new WebSocket('ws://localhost:8888/realtime');
-realtime.onmessage = message => {
-    const { type, data } = JSON.parse(message.data);
-    switch (type) {
-        case PayloadType.GAME_STATUS_UPDATE:
-            updateGameItem(data);
-            break;
-        case PayloadType.ROOM_STATUS_UPDATE:
-            updateRoomItem(data);
-            break;
-        case PayloadType.ROOM_STATUS_DELETE:
-            deleteRoomItem(data);
-            break;
-    }
-};
+      roomItems = {};
 
-(async () => {
-    let rk = await fetch('http://localhost:8888/games');
-    games = await rk.json();
+const [gamesList, roomsList] = document.querySelectorAll('.list');
+
+(async function() {
+    const PayloadType = await jsonFetch('/enums/PayloadType');
+
+
+    const realtime = new WebSocket('ws://localhost:8888/realtime');
+    realtime.onmessage = message => {
+        const { type, data } = JSON.parse(message.data);
+        switch (type) {
+            case PayloadType.GAME_STATUS_UPDATE:
+                updateGameItem(data);
+                break;
+            case PayloadType.ROOM_STATUS_UPDATE:
+                updateRoomItem(data);
+                break;
+            case PayloadType.ROOM_STATUS_DELETE:
+                deleteRoomItem(data);
+                break;
+        }
+    };
+    const games = await jsonFetch('http://localhost:8888/games');
     games.forEach(updateGameItem);
     gamesList.addEventListener('click', e => {
         if (e.target.tagName !== 'DIV') return;
         location.href = location.origin + '/make/' + e.target.dataset.id;
     });
-    rk = await fetch('http://localhost:8888/rooms');
-    rooms = await rk.json();
+    const rooms = await jsonFetch('http://localhost:8888/rooms');
     rooms.forEach(updateRoomItem);
     roomsList.addEventListener('click', e => {
         if (e.target.tagName !== 'DIV') return;
@@ -57,4 +52,9 @@ function updateRoomItem(room) {
 function deleteRoomItem(roomId) {
     roomsList.removeChild(roomItems[roomId]);
     delete roomItems[roomId];
+}
+
+async function jsonFetch(...args) {
+    const rk = await fetch(...args);
+    return await rk.json();
 }

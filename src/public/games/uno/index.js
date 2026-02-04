@@ -97,41 +97,50 @@ function moveFlipSwap(el, x, y, newBg, duration = 1000) {
     return anim
 }
 
-const ws = new WebSocket(`ws://localhost:8888${location.search}&nickname=${prompt('Nickname?')}`);
-ws.onmessage = message => {
-    const { type, data } = JSON.parse(message.data);
-    switch (type) {
-        // Self
-        case RECEIVE_CARD: // deck and draw
-            // card id
-            break;
+(async function() {
+    const PayloadType = await jsonFetch('/enums/UnoPayloadType');
 
-        // Broadcast
-        // NOTE: would be better to send those offer HTTP in case it fails
-        case PLAYER_DISCARDED:
-            // player id
-            // card id
-            break;
-        case PLAYER_DREW:
-            // player id
-            break;
+    const ws = new WebSocket(`ws://localhost:8888${location.search}&nickname=${prompt('Nickname?')}`);
+    ws.onmessage = message => {
+        const { type, data } = JSON.parse(message.data);
+        switch (type) {
+            // Self
+            case PayloadType.RECEIVE_CARD: // deck and draw
+                // card id
+                break;
 
-        // All
-        case GAME_TURN: // whose turn is it
-            // player id
-            break;
-        case GAME_STATUS: // on player join / leave
-            // player count
-            // spectator count
-            break;
-        case GAME_START: // when host starts
-            // cards count of each player
-            // top card
-            break;
-        case GAME_SUMMARY: // end game
-            // player id
-            // points
-            break;
-    }
-};
-// ws.onclose = handleClose;
+            // Broadcast
+            // NOTE: would be better to send those offer HTTP in it fails
+            case PayloadType.PLAYER_DISCARDED:
+                // player id
+                // card id
+                break;
+            case PayloadType.PLAYER_DREW:
+                // player id
+                break;
+
+            // All
+            case PayloadType.GAME_TURN: // whose turn is it
+                // player id
+                break;
+            case PayloadType.GAME_STATUS: // on player join / leave
+                // player count
+                // spectator count
+                break;
+            case PayloadType.GAME_START: // when host starts
+                // cards count of each player
+                // top card
+                break;
+            case PayloadType.GAME_SUMMARY: // end game
+                // player id
+                // points
+                break;
+        }
+    };
+    // ws.onclose = handleClose;
+})();
+
+async function jsonFetch(...args) {
+    const rk = await fetch(...args);
+    return await rk.json();
+}
