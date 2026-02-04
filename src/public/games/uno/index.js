@@ -99,28 +99,36 @@ function moveFlipSwap(el, x, y, newBg, duration = 1000) {
 
 const ws = new WebSocket(`ws://localhost:8888${location.search}&nickname=${prompt('Nickname?')}`);
 ws.onmessage = message => {
-    const data = JSON.parse(message.data);
-    switch (data.type) {
-        // Actions
-        case PLAYER_SKIPPED:
-            // player id
+    const { type, data } = JSON.parse(message.data);
+    switch (type) {
+        // Self
+        case RECEIVE_CARD: // deck and draw
+            // card id
             break;
-        case PLAYER_PLAYED:
+
+        // Broadcast
+        // NOTE: would be better to send those offer HTTP in case it fails
+        case PLAYER_DISCARDED:
             // player id
-            // card
+            // card id
             break;
         case PLAYER_DREW:
             // player id
             break;
 
-        case GAME_INIT:
+        // All
+        case GAME_TURN: // whose turn is it
+            // player id
+            break;
+        case GAME_STATUS: // on player join / leave
+            // player count
+            // spectator count
+            break;
+        case GAME_START: // when host starts
             // cards count of each player
-            // own deck
+            // top card
             break;
-        case GAME_START:
-            // current card
-            break;
-        case GAME_SUMMARY:
+        case GAME_SUMMARY: // end game
             // player id
             // points
             break;
