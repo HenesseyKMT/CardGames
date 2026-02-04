@@ -23,7 +23,8 @@ app.use(express.static(path.join(__dirname, '..', 'public'), { dotfiles: 'ignore
 app.get('/games', (req, res) => res.status(200).send(games));
 app.get('/rooms', (req, res) => res.status(200).send([...rooms].map(getRoomStatus)));
 app.post('/make/:id/', (req, res) => {
-    const room = new Room(req.ip, req.params.id, req.body);
+    // TODO: create a game instance of req.params.id
+    const room = new Room(req.ip, req.body);
     res.redirect(303, room.url); // prevents form resubmission
 });
 

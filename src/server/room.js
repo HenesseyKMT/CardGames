@@ -14,7 +14,7 @@ const ipToRoom = new Map, idToRoom = new Map;
 const rooms = new Set;
 
 class Room {
-    constructor(ownerIp, gameId, settings) {
+    constructor(ownerIp, settings, gameId) {
         this.id = maxRoomId++;
         this.ownerIp = ownerIp;
         this.gameId = gameId;

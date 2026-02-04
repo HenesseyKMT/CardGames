@@ -1,3 +1,5 @@
+const { Room } = require('../room');
+
 const CardType = {
     NUMBER: 0,
     PLUS_TWO: 1,
@@ -33,9 +35,10 @@ const CARDS_COUNT = DECK.length
 const DECK_IDS = Array(CARDS_COUNT).fill().map((_, i) => i);
 
 
-class Game {
-    constructor(players) {
-        this.players = players; // { nickname, hand }
+class UnoRoom extends Room {
+    constructor(...args) {
+        super(...args, 'uno');
+        this.players = []; // { nickname, hand }
         this.pile = [];
         this.discard = [...DECK_IDS];
         this.turn = 0;
@@ -43,23 +46,28 @@ class Game {
         this.top = null;
     }
     start() {
+        // freeze clients
+        this.players = [...this.clients];
         // shuffle
         for (let i = 0; i < CARDS_COUNT; i++)
             this.pile.push(this.discard.splice(Math.floor(Math.random() * CARDS_COUNT), 1));
         // distribute
-        for (let player in this.players) {
-            while (player.hand.length < 7) {
+        for (let player of this.players)
+            player.hand = [];
+        for (let i = 0; i < 7; i++)
+            for (let player of this.players)
                 player.hand.push(this.pile.pop());
-            }
-        }
+        // draw first card
         this.top = this.pile.pop();
     }
     play(player, card) {
         // redefine top in function of what this player plays
+        const top = DECK[this.top],
+              card = DECK[card];
         if (
-            this.top.type === card.type ||
-            this.top.value === card.value ||
-            this.top.color === card.color ||
+            top.type === card.type ||
+            top.value === card.value ||
+            top.color === card.color ||
             card.type === CardType.JOKER || card.type === CardType.PLUS_FOUR
         ) {
             const nextPlayer = this.players[this.turn + 1];
@@ -94,3 +102,5 @@ class Game {
         // +1 to turn
     }
 }
+
+module.exports = UnoRoom;
