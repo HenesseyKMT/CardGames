@@ -46,6 +46,13 @@
 
     background-size: cover;
     background-image: url('./back.png');
+
+    border: 1px solid black;
+    font-size: calc(var(--height) / 2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
 }
 
 #table {
@@ -66,4 +73,17 @@ body {
     width: 100vw;
     height: 100vh;
     background: radial-gradient(#22A, #112);
+}
+
+#popup {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+    font-size: 50px;
+    padding: 10px 20px;
+    background: rgba(0, 0, 0, 0.3);
+    color: white;
+    border-bottom-right-radius: 5px;
+    border-bottom-left-radius: 5px;
 }

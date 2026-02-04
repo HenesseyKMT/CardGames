@@ -1,3 +1,64 @@
+(async function() {
+    return
+    const PayloadType = await jsonFetch('/enums/UnoPayloadType');
+
+    const ws = new WebSocket(`ws://localhost:8888${location.search}&nickname=${localStorage.nickname || ''}`);
+    ws.onmessage = message => {
+        const { type, data } = JSON.parse(message.data);
+        switch (type) {
+            // Self
+            case PayloadType.RECEIVE_CARD: // deck and draw
+                // card id
+                break;
+
+            // Broadcast
+            // NOTE: would be better to send those offer HTTP in it fails
+            case PayloadType.PLAYER_DISCARDED:
+                // player id
+                // card id
+                break;
+            case PayloadType.PLAYER_DREW:
+                // player id
+                break;
+
+            // All
+            case PayloadType.GAME_TURN: // whose turn is it
+                // player id
+                break;
+            case PayloadType.GAME_STATUS: // on player join / leave
+                // player count
+                // spectator count
+                // TODO: maybe merge ROOM_STATUS_UPDATE and this
+                break;
+            case PayloadType.GAME_START: // when host starts
+                // cards count of each player
+                // top card
+                break;
+            case PayloadType.GAME_SUMMARY: // end game
+                // player id
+                // points
+                break;
+        }
+    };
+    // ws.onclose = handleClose;
+})();
+
+
+let popupVisible = false;
+window.addEventListener('keyup', e => {
+    if (e.key === 'Escape') {
+        popup.style = popupVisible ? 'display:none' : '';
+        popupVisible = !popupVisible;
+        e.preventDefault();
+    }
+});
+
+
+async function jsonFetch(...args) {
+    const rk = await fetch(...args);
+    return await rk.json();
+}
+
 const config = {
     handsDisplayCompact: false,
 }
@@ -18,6 +79,8 @@ function addDeck(cardsCount) {
     else for (let i = 0; i < cardsCount; i++) {
         const card = document.createElement('i');
         card.className = 'card';
+        // card.innerText = '9';
+        // if (value === 9 || value === 6) card.style.textDecoration = 'underline';
         handElement.appendChild(card);
     }
     handElements.push(handElement);
@@ -51,7 +114,7 @@ addDeck(9);
 addDeck(3);
 
 const { left: TX, top: TY } = discard.getBoundingClientRect();
-discard.onclick = () => {
+discard.onclick = async () => {
     const cards = Array.from(handElements[Math.floor(Math.random() * handElements.length)].children);
     const card = cards[Math.floor(Math.random() * cards.length)];
     // const card = handElements[4].children.item(0);
@@ -95,52 +158,4 @@ function moveFlipSwap(el, x, y, newBg, duration = 1000) {
     ).onfinish = () => el.parentElement.removeChild(el);
 
     return anim
-}
-
-(async function() {
-    const PayloadType = await jsonFetch('/enums/UnoPayloadType');
-
-    const ws = new WebSocket(`ws://localhost:8888${location.search}&nickname=${prompt('Nickname?')}`);
-    ws.onmessage = message => {
-        const { type, data } = JSON.parse(message.data);
-        switch (type) {
-            // Self
-            case PayloadType.RECEIVE_CARD: // deck and draw
-                // card id
-                break;
-
-            // Broadcast
-            // NOTE: would be better to send those offer HTTP in it fails
-            case PayloadType.PLAYER_DISCARDED:
-                // player id
-                // card id
-                break;
-            case PayloadType.PLAYER_DREW:
-                // player id
-                break;
-
-            // All
-            case PayloadType.GAME_TURN: // whose turn is it
-                // player id
-                break;
-            case PayloadType.GAME_STATUS: // on player join / leave
-                // player count
-                // spectator count
-                break;
-            case PayloadType.GAME_START: // when host starts
-                // cards count of each player
-                // top card
-                break;
-            case PayloadType.GAME_SUMMARY: // end game
-                // player id
-                // points
-                break;
-        }
-    };
-    // ws.onclose = handleClose;
-})();
-
-async function jsonFetch(...args) {
-    const rk = await fetch(...args);
-    return await rk.json();
 }
