@@ -1,3 +1,4 @@
+const fs = require('fs');
 const path = require('path');
 const http = require('http');
 const express = require('express');
@@ -10,6 +11,8 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
+const enumsDir = path.join(__dirname, 'enums');
+
 app.set('trust proxy', true);
 app.use((req, res, next) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
@@ -19,7 +22,20 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '..', 'public'), { dotfiles: 'ignore' }));
+app.get('/enums/:name', (req, res) => {
+    const fileName = req.params.name + '.json';
+    const filePath = path.join(enumsDir, fileName);
 
+    fs.access(filePath, fs.constants.R_OK, (err) => {
+        if (err) {
+            res.status(404).send({ error: 'Not found' });
+            return;
+        }
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Cache-Control', 'public, max-age=86400'); // 1 day
+        res.sendFile(filePath);
+    });
+});
 app.get('/games', (req, res) => res.status(200).send(games));
 app.get('/rooms', (req, res) => res.status(200).send([...rooms].map(getRoomStatus)));
 app.post('/make/:id/', (req, res) => {
