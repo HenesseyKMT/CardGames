@@ -4,6 +4,7 @@ const http = require('http');
 const express = require('express');
 const WebSocket = require('ws');
 
+const Games = require('./games');
 const { Room, rooms, idToRoom, ipToRoom, getRoomStatus } = require('./room');
 const { broadcastRealtime, realtimeClients } = require('./realtime');
 
@@ -39,8 +40,7 @@ app.get('/enums/:name', (req, res) => {
 app.get('/games', (req, res) => res.status(200).send(games));
 app.get('/rooms', (req, res) => res.status(200).send([...rooms].map(getRoomStatus)));
 app.post('/make/:id/', (req, res) => {
-    // TODO: create a game instance of req.params.id
-    const room = new Room(req.ip, req.body);
+    const room = new Games[req.params.id](req.ip, req.body);
     res.redirect(303, room.url); // prevents form resubmission
 });
 

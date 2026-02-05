@@ -61,6 +61,10 @@ class Room {
             s += `&code=${encodeURIComponent(this.settings.code)}`;
         return s;
     }
+    broadcast(data) {
+        data = JSON.stringify(data);
+        for (const ws of this.clients) ws.send(data);
+    }
 }
 
 function updateRoomStatus(room) {

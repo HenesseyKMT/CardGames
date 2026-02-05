@@ -1,4 +1,5 @@
 const { Room } = require('../room');
+const UnoPayloadType = require('../enums/UnoPayloadType');
 
 const CardType = {
     NUMBER: 0,
@@ -45,6 +46,24 @@ class UnoRoom extends Room {
         this.direction = 1; // -1
         this.top = null;
     }
+    leave(...args) {
+        super.leave(...args);
+        this.broadcast({
+            type: UnoPayloadType.GAME_STATUS,
+            data: {
+                players: [...this.clients].map(ws => ws.nickname)
+            }
+        });
+    }
+    join(...args) {
+        super.join(...args);
+        this.broadcast({
+            type: UnoPayloadType.GAME_STATUS,
+            data: {
+                players: [...this.clients].map(ws => ws.nickname)
+            }
+        });
+    }
     start() {
         // freeze clients
         this.players = [...this.clients];
@@ -62,8 +81,8 @@ class UnoRoom extends Room {
     }
     play(player, card) {
         // redefine top in function of what this player plays
-        const top = DECK[this.top],
-              card = DECK[card];
+        const top = DECK[this.top];
+        card = DECK[card];
         if (
             top.type === card.type ||
             top.value === card.value ||

@@ -1,5 +1,4 @@
 (async function() {
-    return
     const PayloadType = await jsonFetch('/enums/UnoPayloadType');
 
     const ws = new WebSocket(`ws://localhost:8888${location.search}&nickname=${localStorage.nickname || ''}`);
@@ -28,7 +27,10 @@
             case PayloadType.GAME_STATUS: // on player join / leave
                 // player count
                 // spectator count
-                // TODO: maybe merge ROOM_STATUS_UPDATE and this
+                let i = 1, content = '<table><tbody>';
+                for (const nickname of data.players)
+                    content += `<tr><td>${i++}</td><td>${nickname}</td></tr>`;
+                popup.innerHTML = content + '</tbody></table>';
                 break;
             case PayloadType.GAME_START: // when host starts
                 // cards count of each player
