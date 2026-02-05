@@ -1,0 +1,1 @@
+document.body.style = localStorage.theme ||= "background:radial-gradient(#22A, #112);";
