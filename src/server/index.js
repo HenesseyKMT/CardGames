@@ -41,7 +41,7 @@ app.get('/games', (req, res) => res.status(200).send(games));
 app.get('/rooms', (req, res) => res.status(200).send([...rooms].map(getRoomStatus)));
 app.post('/make/:id/', (req, res) => {
     const room = new Games[req.params.id](req.ip, req.body);
-    res.redirect(303, room.url); // prevents form resubmission
+    res.redirect(303, room.url + '&host=true'); // prevents form resubmission
 });
 
 const games = [{

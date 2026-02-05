@@ -1,7 +1,11 @@
+const s = new URLSearchParams(location.search);
+const roomId = s.get('id');
+const isHost = s.get('host') === "true";
+
 (async function() {
     const PayloadType = await jsonFetch('/enums/UnoPayloadType');
 
-    const ws = new WebSocket(`ws://localhost:8888${location.search}&nickname=${localStorage.nickname || ''}`);
+    const ws = new WebSocket(`ws://localhost:8888?id=${roomId}&nickname=${localStorage.nickname || ''}`);
     ws.onmessage = message => {
         const { type, data } = JSON.parse(message.data);
         switch (type) {
@@ -43,6 +47,13 @@
         }
     };
     // ws.onclose = handleClose;
+    ws.send = (type, data) => WebSocket.prototype.send.call(ws, JSON.stringify(data === undefined ? { type } : { type, data }));
+
+    // put start button if client is host
+    start.hidden = !isHost;
+    start.addEventListener('click', () => {
+        ws.send(PayloadType.HOST_START);
+    });
 })();
 
 

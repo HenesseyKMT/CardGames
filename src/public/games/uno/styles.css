@@ -96,3 +96,20 @@ table {
 td {
     padding: 5px 20px;
 }
+
+#start {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    padding: 10px 30px;
+    border-radius: 5px;
+    font-size: 20px;
+    color: white;
+    background: black;
+    opacity: 0.6;
+    border: none;
+}
+
+#start:hover {
+    border: 1px solid lime;
+}

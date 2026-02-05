@@ -1,9 +1,13 @@
 {
     "RECEIVE_CARD": 0,
+
     "PLAYER_DISCARDED": 1,
     "PLAYER_DREW": 2,
+
     "GAME_TURN": 3,
     "GAME_STATUS": 4,
     "GAME_START": 5,
-    "GAME_SUMMARY": 6
+    "GAME_SUMMARY": 6,
+
+    "HOST_START": 7
 }
