@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -26,7 +24,7 @@
 <body>
     <center><h1>Configure</h1></center>
     <form id="config" action="." method="POST">
-        <span>Name<input name="name" type="text" maxlength="20"></span><br>
+        <span>Name<input name="name" type="text" maxlength="20" value="Room"></span><br>
         <span>Public<input name="public" type="checkbox" checked></span><br>
         <span>Code<input name="code" type="text" maxlength="8"></span><br>
         <span>Max Players<input name="maxPlayers" type="number" min="0" max="100" value="100"></span><br>
@@ -49,8 +47,5 @@
         <span>Liar Self Penality<input name="liarSelfPenality" type="number" min="0" max="100" value="2"></span><br>
         <center><button type="submit">Create</button></center>
     </form>
-    <hr>
-    <center><h1>Public Rooms</h1></center>
-    <script src="./index.js"></script>
 </body>
 </html>
