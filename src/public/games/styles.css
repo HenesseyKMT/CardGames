@@ -31,6 +31,11 @@
     transform: rotate(180deg);
 }
 
+#bottom-hands {
+    bottom: 0;
+    width: 100vw;
+}
+
 .hand {
     color: white;
     font-size: 20px;

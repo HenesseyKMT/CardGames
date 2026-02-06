@@ -61,6 +61,10 @@ class UnoRoom extends Room {
         });
     }
     onJoin(ws) {
+        ws.send(JSON.stringify({
+            type: UnoPayloadType.PLAYER_ID,
+            data: ws.id
+        }));
         // send players already inside the room
         for (const other of this.clients)
             if (other !== ws)
@@ -71,10 +75,6 @@ class UnoRoom extends Room {
                         nickname: other.nickname
                     }
                 }));
-        ws.send(JSON.stringify({
-            type: UnoPayloadType.PLAYER_ID,
-            data: ws.id
-        }));
         this.broadcast({
             type: UnoPayloadType.PLAYER_JOIN,
             data: {

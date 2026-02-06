@@ -70,10 +70,11 @@ const config = {
     handsDisplayCompact: false,
 }
 
-const hiddenHandSlots = {
+const handSlots = {
     left: document.getElementById('left-hands'),
     top: document.getElementById('top-hands'),
-    right: document.getElementById('right-hands')
+    right: document.getElementById('right-hands'),
+    bottom: document.getElementById('bottom-hands')
 };
 
 function addPlayer(id, nickname) {
@@ -84,10 +85,13 @@ function addPlayer(id, nickname) {
     const handElement = document.createElement('div');
     playerElement.append(nicknameDisplay, handElement);
     players[id] = {
+        id,
         nickname,
         playerElement,
         handElement
     };
+    if (id === playerId)
+        handSlots.bottom.appendChild(playerElement);
     orderPlayers();
 }
 
@@ -100,6 +104,8 @@ function deletePlayer(id) {
 
 function orderPlayers() {
     const p = Object.values(players);
+    while (p[0].id < playerId) p.push(p.shift());
+    p.shift(); // player
     const c = p.length;
     let n = 0;
     while (c - 2 * n >= n) n++;
@@ -107,11 +113,11 @@ function orderPlayers() {
     let i = 0;
     const m = c - 2 * n;
     for (let j = 0; j < n; j++)
-        hiddenHandSlots.left.appendChild(p[i++].playerElement);
+        handSlots.left.appendChild(p[i++].playerElement);
     for (let j = 0; j < m; j++)
-        hiddenHandSlots.top.appendChild(p[i++].playerElement);
+        handSlots.top.appendChild(p[i++].playerElement);
     for (let j = 0; j < n; j++)
-        hiddenHandSlots.right.appendChild(p[i++].playerElement);
+        handSlots.right.appendChild(p[i++].playerElement);
 }
 
 discard.onclick = async () => {
