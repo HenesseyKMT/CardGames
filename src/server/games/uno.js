@@ -54,15 +54,13 @@ class UnoRoom extends Room {
             [UnoPayloadType.HOST_START]: this.start.bind(this)
         };
     }
-    leave(ws) {
-        super.leave(ws);
+    onLeave(ws) {
         this.broadcast({
             type: UnoPayloadType.PLAYER_LEAVE,
             data: ws.id
         });
     }
-    join(ws, code) {
-        super.join(ws, code);
+    onJoin(ws) {
         this.broadcast({
             type: UnoPayloadType.PLAYER_JOIN,
             data: {

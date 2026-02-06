@@ -38,15 +38,16 @@ class Room {
             ipToRoom.get(ws.ip)?.leave(ws);
             ipToRoom.set(ws.ip, this);
         }
-        this.clients.add(ws);
         ws.id = clientId++;
+        this.onJoin?.(ws);
+        this.clients.add(ws);
         updateRoomStatus(this);
     }
     leave(ws) {
         if (!this.clients.delete(ws)) return;
         if (ws.ip === this.ownerIp) return this.destroy();
         ipToRoom.delete(ws.ip);
-        this.clients.delete(ws);
+        this.onLeave?.(ws);
         updateRoomStatus(this);
     }
     destroy() {
@@ -55,6 +56,7 @@ class Room {
         rooms.delete(this);
         ipToRoom.delete(this.ownerIp);
         idToRoom.delete(this.id);
+        this.onDestroy?.();
         deleteRoomStatus(this);
     }
     get url() {
