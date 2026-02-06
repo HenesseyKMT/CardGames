@@ -104,8 +104,9 @@ class UnoRoom extends Room {
         // freeze clients
         this.players = [...this.clients];
         // shuffle
+        let n = CARDS_COUNT;
         for (let i = 0; i < CARDS_COUNT; i++)
-            this.pile.push(this.discard.splice(Math.floor(Math.random() * CARDS_COUNT), 1));
+            this.pile.push(this.discard.splice(Math.floor(Math.random() * n--), 1)[0]);
         // distribute
         let index = 0;
         for (const player of this.players) {
