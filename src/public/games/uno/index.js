@@ -19,11 +19,11 @@ let players = {}, playerId;
             // Broadcast
             // NOTE: would be better to send those offer HTTP in it fails
             case PayloadType.PLAYER_DISCARDED:
-                // player index
+                // player id
                 // card id
                 break;
             case PayloadType.PLAYER_DREW:
-                // player index
+                addCard(data);
                 break;
             case PayloadType.PLAYER_LEAVE:
                 deletePlayer(data);
@@ -37,7 +37,7 @@ let players = {}, playerId;
 
             // All
             case PayloadType.GAME_TURN: // whose turn is it
-                // player index
+                // player id
                 break;
             case PayloadType.GAME_STARTED: // when host starts
                 start.hidden = true;
@@ -46,7 +46,7 @@ let players = {}, playerId;
                 // top card
                 break;
             case PayloadType.GAME_SUMMARY: // end game
-                // player index
+                // player id
                 // points
                 break;
         }
@@ -61,6 +61,7 @@ let players = {}, playerId;
     });
 })();
 
+// TODO: should put this inside theme.js (but rename the file)
 async function jsonFetch(...args) {
     const rk = await fetch(...args);
     return await rk.json();
@@ -120,10 +121,22 @@ function orderPlayers() {
         handSlots.right.appendChild(p[i++].playerElement);
 }
 
+function addCard(id) {
+    if (id === playerId) return;
+    const { handElement } = players[id];
+    if (config.handsDisplayCompact) {
+        handElement.innerText++;
+    } else {
+        const card = document.createElement('i');
+        card.className = 'card';
+        handElement.appendChild(card);
+    }
+}
+
 discard.onclick = async () => {
-    const cards = Array.from(playerElements[Math.floor(Math.random() * playerElements.length)].lastElementChild.children);
+    const cards = document.querySelectorAll('.card');
     const card = cards[Math.floor(Math.random() * cards.length)];
-    // const card = playerElements[4].children.item(0);
+    // const card = players[4].children.item(0);
     const { left, top } = discard.getBoundingClientRect(); // in case window is resized
     moveFlipSwap(card, left, top, "url('./trans.png')");
 }
