@@ -2,7 +2,7 @@ const s = new URLSearchParams(location.search);
 const roomId = s.get('id');
 const isHost = s.get('host') === "true";
 
-let playerNicknames = {}, playerId;
+let players = {}, playerId;
 
 (async function() {
     const PayloadType = await jsonFetch('/enums/UnoPayloadType');
@@ -26,9 +26,9 @@ let playerNicknames = {}, playerId;
                 // player index
                 break;
             case PayloadType.PLAYER_LEAVE:
+                deletePlayer(data);
                 break;
             case PayloadType.PLAYER_JOIN:
-                playerNicknames[data.id] = data.nickname;
                 addPlayer(data.id, data.nickname);
                 break;
             case PayloadType.PLAYER_ID:
@@ -70,51 +70,49 @@ const config = {
     handsDisplayCompact: false,
 }
 
-const hiddenHands = [];
-
 const hiddenHandSlots = {
     left: document.getElementById('left-hands'),
     top: document.getElementById('top-hands'),
     right: document.getElementById('right-hands')
 };
-const playerElements = [];
 
-function addPlayer(nickname) {
+function addPlayer(id, nickname) {
     const playerElement = document.createElement('div');
     playerElement.className = 'hand';
     const nicknameDisplay = document.createElement('span');
     nicknameDisplay.innerText = nickname;
     const handElement = document.createElement('div');
     playerElement.append(nicknameDisplay, handElement);
-    playerElements.push(handElement);
+    players[id] = {
+        nickname,
+        playerElement,
+        handElement
+    };
+    orderPlayers();
+}
 
-    const c = playerElements.length;
+function deletePlayer(id) {
+    const { playerElement } = players[id];
+    playerElement.remove();
+    delete players[id];
+    orderPlayers();
+}
+
+function orderPlayers() {
+    const p = Object.values(players);
+    const c = p.length;
     let n = 0;
     while (c - 2 * n >= n) n++;
     n--;
     let i = 0;
     const m = c - 2 * n;
     for (let j = 0; j < n; j++)
-        hiddenHandSlots.left.appendChild(playerElements[i++]);
+        hiddenHandSlots.left.appendChild(p[i++].playerElement);
     for (let j = 0; j < m; j++)
-        hiddenHandSlots.top.appendChild(playerElements[i++]);
+        hiddenHandSlots.top.appendChild(p[i++].playerElement);
     for (let j = 0; j < n; j++)
-        hiddenHandSlots.right.appendChild(playerElements[i++]);
+        hiddenHandSlots.right.appendChild(p[i++].playerElement);
 }
-/*
-setTimeout(addPlayer, 0, 6);
-setTimeout(addPlayer, 2000, 7);
-setTimeout(addPlayer, 2000, 11);
-setTimeout(addPlayer, 4000, 7);
-setTimeout(addPlayer, 4000, 9);
-setTimeout(addPlayer, 4000, 3);
-*/
-addPlayer(6);
-addPlayer(7);
-addPlayer(11);
-addPlayer(7);
-addPlayer(9);
-addPlayer(3);
 
 discard.onclick = async () => {
     const cards = Array.from(playerElements[Math.floor(Math.random() * playerElements.length)].lastElementChild.children);

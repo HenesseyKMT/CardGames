@@ -61,13 +61,6 @@ class UnoRoom extends Room {
         });
     }
     onJoin(ws) {
-        this.broadcast({
-            type: UnoPayloadType.PLAYER_JOIN,
-            data: {
-                id: ws.id,
-                nickname: ws.nickname
-            }
-        });
         // send players already inside the room
         for (const other of this.clients)
             if (other !== ws)
@@ -82,6 +75,13 @@ class UnoRoom extends Room {
             type: UnoPayloadType.PLAYER_ID,
             data: ws.id
         }));
+        this.broadcast({
+            type: UnoPayloadType.PLAYER_JOIN,
+            data: {
+                id: ws.id,
+                nickname: ws.nickname
+            }
+        });
     }
     draw(player) {
         const card = this.pile.pop();
