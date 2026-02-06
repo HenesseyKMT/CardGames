@@ -98,7 +98,7 @@ wss.on('connection', (ws, req) => {
         const room = idToRoom.get(id);
         if (!room) return ws.close(1009, 'Unknown room');
         ws.nickname = u.get('nickname') || '';
-        room.join(ws, req, code);
+        room.join(ws, code);
         ws.on('message', message => {
             try {
                 var { type, data } = JSON.parse(message);

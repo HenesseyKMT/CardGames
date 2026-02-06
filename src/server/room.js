@@ -31,16 +31,16 @@ class Room {
     // NOTE: maybe would be better as a WebSocket method
     join(ws, code) {
         if (this.clients.size === this.settings.maxPlayers)
-            return ws.close(1006, 'Room Full');
+            return ws.close(1009, 'Room Full');
         if (this.settings.public === State.OFF && this.settings.code !== code)
-            return ws.close(1006, 'Wrong code');
+            return ws.close(1009, 'Wrong code');
         if (ws.ip !== this.ownerIp) {
             ipToRoom.get(ws.ip)?.leave(ws);
             ipToRoom.set(ws.ip, this);
         }
-        ws.id = clientId++;
-        this.onJoin?.(ws);
+        ws.id = this.clientId++;
         this.clients.add(ws);
+        this.onJoin?.(ws);
         updateRoomStatus(this);
     }
     leave(ws) {
@@ -52,7 +52,7 @@ class Room {
     }
     destroy() {
         for (const ws of this.clients)
-            ws.close(1006, 'Room Destroyed');
+            ws.close(1009, 'Room Destroyed');
         rooms.delete(this);
         ipToRoom.delete(this.ownerIp);
         idToRoom.delete(this.id);
