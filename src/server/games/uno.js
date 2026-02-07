@@ -92,7 +92,7 @@ class UnoRoom extends Room {
         }));
         this.broadcast({
             type: UnoPayloadType.PLAYER_DREW,
-            data: player.index
+            data: player.id
         });
     }
     async start(host) {
@@ -108,11 +108,8 @@ class UnoRoom extends Room {
         for (let i = 0; i < CARDS_COUNT; i++)
             this.pile.push(this.discard.splice(Math.floor(Math.random() * n--), 1)[0]);
         // distribute
-        let index = 0;
-        for (const player of this.players) {
+        for (const player of this.players)
             player.hand = [];
-            player.index = index++;
-        }
         for (let i = 0; i < 7; i++)
             for (const player of this.players) {
                 this.draw(player);
