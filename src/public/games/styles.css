@@ -41,6 +41,9 @@
     scale: 1.5;
     transform-origin: bottom;
 }
+#bottom-hands .card:hover {
+    margin-right: 0;
+}
 
 .hand {
     color: white;
