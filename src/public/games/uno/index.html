@@ -4,6 +4,18 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Uno</title>
+    <style>
+        :root {
+            --card-scale: 3;
+            --card-width: 156px;
+            --card-height: 242px;
+            --card-background-columns: 13;
+            --card-background-rows: 5;
+            --card-background-width: calc(var(--card-background-columns) * var(--card-width));
+            --card-background-height: calc(var(--card-background-rows) * var(--card-height));
+            --card-background-image: url('./uno/assets/cards.png');
+        }
+    </style>
     <link rel="stylesheet" type="text/css" href="../styles.css">
 </head>
 <body>

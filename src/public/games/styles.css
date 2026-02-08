@@ -1,9 +1,8 @@
 :root {
     --pane-size: 20px;
 
-    --card-scale: 3;
-    --card-width: calc(156px / var(--card-scale));
-    --card-height: calc(242px / var(--card-scale));
+    --card-real-width: calc(var(--card-width) / var(--card-scale));
+    --card-real-height: calc(var(--card-height) / var(--card-scale));
 }
 
 .pane {
@@ -56,20 +55,23 @@
     display: flex;
 }
 .card {
-    width: var(--card-width);
-    height: var(--card-height);
+    --x: 0;
+    --y: 0;
+    width: var(--card-real-width);
+    height: var(--card-real-height);
     border-radius: 4px;
-    margin-right: calc(-0.5 * var(--card-width));
+    margin-right: calc(-0.5 * var(--card-real-width));
 
-    background-size: cover;
-    background-image: url('./back.png');
+    background-size: calc(var(--card-background-width) / var(--card-scale)) calc(var(--card-background-height) / var(--card-scale));
+    background-position: calc(-1 * min(max(0, var(--x)), calc(var(--card-background-columns) - 1)) * var(--card-real-width))
+                         calc(-1 * min(max(0, var(--y)), calc(var(--card-background-rows) - 1)) * var(--card-real-height));
+    background-image: var(--card-background-image);
+    background-repeat: no-repeat;
 
-    border: 1px solid black;
-    font-size: calc(var(--card-height) / 2);
+    font-size: calc(var(--card-real-height) / 2);
     display: flex;
     align-items: center;
     justify-content: center;
-    background: white;
 
     transition: width 0.4s ease,
                 height 0.4s ease,
@@ -93,8 +95,8 @@
 
 #pile, #discard {
     display: block;
-    width: calc(var(--card-width) + 2 * var(--gap));
-    height: calc(var(--card-height) + 2 * var(--gap));
+    width: calc(var(--card-real-width) + 2 * var(--gap));
+    height: calc(var(--card-real-height) + 2 * var(--gap));
 }
 
 body {
