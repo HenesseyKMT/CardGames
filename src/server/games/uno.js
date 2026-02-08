@@ -88,7 +88,7 @@ class UnoRoom extends Room {
                 await sleep(0.7); // TODO: make that configurable
             }
         // draw first card
-        await sleep(3);
+        await sleep(0.7);
         this.top = this.pile.pop();
         this.broadcast({
             type: PayloadType.GAME_BEGIN,
