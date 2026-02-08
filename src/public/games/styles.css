@@ -37,6 +37,9 @@
 #bottom-hands {
     bottom: 0;
     width: 100vw;
+    height: auto;
+    scale: 1.5;
+    transform-origin: bottom;
 }
 
 .hand {

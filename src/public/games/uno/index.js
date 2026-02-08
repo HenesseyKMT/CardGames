@@ -15,7 +15,7 @@ let players = {}, playerId, hasStarted = false, isRunning = false, playerTurn, D
         switch (type) {
             // Self
             case PayloadType.RECEIVE_CARD: // deck and draw
-                // card id
+                addCard(playerId, data);
                 break;
 
             // Broadcast
@@ -93,14 +93,13 @@ const discardTop = card.cloneNode(true);
 
 function setCardPosition(element, id) {
     const { type, value, color } = DECK[id];
-    element.style = `--x: ${
+    element.style.setProperty('--x',
         type === CardType.NUMBER ? value :
         type === CardType.JOKER ? 0 :
         type === CardType.PLUS_FOUR ? 1 :
         9 + type
-    }; --y: ${
-        color
-    }`;
+    );
+    element.style.setProperty('--y', color);
 }
 
 function addPlayer(id, nickname) {
@@ -147,10 +146,9 @@ function orderPlayers() {
         handSlots.right.appendChild(p[i++].playerElement);
 }
 
-function addCard(id) {
+function addCard(id, cardId) {
     // thanks ChatGPT, I was about to lose my mind on this
     // FIXME: left and right hands are offseted
-    // if (id === playerId) return;
 
     const { handElement, playerElement } = players[id];
 
@@ -178,7 +176,27 @@ function addCard(id) {
 
     ghost.style.transformOrigin = 'center center';
 
-    ghost.animate(
+    if (playerId === id) ghost.animate([{
+        transform: 'translate(0px, 0px) scale(1.5) rotate(0deg)'
+    }, {
+        transform: `translate(${dx * 0.7}px, ${dy * 0.7}px) scale(1.5) rotateY(90deg)`
+    }], {
+        duration: 300,
+        fill: 'forwards'
+    }).onfinish = () => {
+        setCardPosition(ghost, cardId);
+        ghost.animate([{
+            transform: `translate(${dx}px, ${dy}px) scale(1.5)`
+        }], {
+            duration: 100,
+            fill: 'forwards'
+        }).onfinish = () => {
+            ghost.remove();
+            setCardPosition(target, cardId);
+            handElement.appendChild(target);
+        };
+    };
+    else ghost.animate(
         [
             {
                 transform: 'translate(0px, 0px) scale(1.5) rotate(0deg)'
