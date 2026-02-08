@@ -2,7 +2,7 @@ const s = new URLSearchParams(location.search);
 const roomId = s.get('id');
 const isHost = s.get('host') === "true";
 
-let players = {}, playerId, isRunning = false, playerTurn;
+let players = {}, playerId, hasStarted = false, isRunning = false, playerTurn;
 
 (async function() {
     const PayloadType = await jsonFetch('/enums/UnoPayloadType');
@@ -23,15 +23,14 @@ let players = {}, playerId, isRunning = false, playerTurn;
                 // card id
                 break;
             case PayloadType.PLAYER_DREW:
-                if (isRunning)
-                    addCard(data);
+                addCard(data);
                 break;
             case PayloadType.PLAYER_LEAVE:
                 deletePlayer(data);
                 break;
             case PayloadType.PLAYER_JOIN:
                 // TODO: add as spectator otherwise
-                if (!isRunning)
+                if (!hasStarted)
                     addPlayer(data.id, data.nickname);
                 break;
             case PayloadType.PLAYER_ID:
@@ -44,10 +43,11 @@ let players = {}, playerId, isRunning = false, playerTurn;
                 players[playerTurn = data]?.nicknameDisplay.classList.add('playing');
                 break;
             case PayloadType.GAME_STARTED: // when host starts
-                isRunning = true;
+                hasStarted = true;
                 start.hidden = true;
                 break;
             case PayloadType.GAME_BEGIN: // when game begins
+                isRunning = true;
                 // top card
                 break;
             case PayloadType.GAME_SUMMARY: // end game
