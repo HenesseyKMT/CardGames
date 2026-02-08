@@ -150,14 +150,14 @@ function orderPlayers() {
 function addCard(id) {
     // thanks ChatGPT, I was about to lose my mind on this
     // FIXME: left and right hands are offseted
-    if (id === playerId) return;
+    // if (id === playerId) return;
 
     const { handElement, playerElement } = players[id];
 
     const target = card.cloneNode(true);
     handElement.appendChild(target);
 
-    const pileCard = pile.querySelector('.card');
+    const pileCard = pile.firstElementChild;
     const from = pileCard.getBoundingClientRect();
     const to = target.getBoundingClientRect();
 
@@ -195,6 +195,38 @@ function addCard(id) {
     ).onfinish = () => {
         ghost.remove();
         handElement.appendChild(target);
+    };
+}
+
+function removeCard(id, cardId) {
+    const { handElement, playerElement } = players[id];
+
+    const target = handElement.children.item(Math.floor(Math.random() * handElement.childElementCount));
+
+    const from = discardTop.getBoundingClientRect();
+    const to = target.getBoundingClientRect();
+
+    const dx = to.left - from.left - 13;
+    const dy = to.top - from.top - 20;
+    const rot = playerElement.parentElement.style.getPropertyValue('--rotation');
+
+    target.style.transformOrigin = 'center center';
+    target.animate([{
+        transform: `translate(${dx * 0.7}px, ${dy * 0.7}px) scale(${1.5 * 0.9}) rotate(-${rot}) rotateY(90deg)`
+    }], {
+        duration: 300,
+        fill: 'forwards'
+    }).onfinish = () => {
+        setCardPosition(target, cardId);
+        target.animate([{
+            transform: `translate(${dx}px, ${dy}px) scale(1.5) rotate(-${rot})`
+        }], {
+            duration: 100,
+            fill: 'forwards'
+        }).onfinish = () => {
+            target.remove();
+            setCardPosition(discardTop, cardId);
+        };
     };
 }
 
