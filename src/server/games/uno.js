@@ -1,21 +1,7 @@
 const { Room } = require('../room');
-const UnoPayloadType = require('../enums/UnoPayloadType');
-
-const CardType = {
-    NUMBER: 0,
-    PLUS_TWO: 1,
-    SKIPS: 2,
-    CHANGE_DIRECTION: 3,
-    JOKER: 4,
-    PLUS_FOUR: 5
-};
-const CardColor = {
-    RED: 0,
-    YELLOW: 1,
-    GREEN: 2,
-    BLUE: 3,
-    BLACK: 4
-};
+const PayloadType = require('../enums/UnoPayloadType');
+const CardType = require('../enums/UnoCardType');
+const CardColor = require('../enums/UnoCardColor');
 
 function sleep(s) {
     return new Promise(r => setTimeout(r, s * 1000));
@@ -51,12 +37,12 @@ class UnoRoom extends Room {
         this.top = null;
         this.isRunning = false;
         this.handlers = {
-            [UnoPayloadType.HOST_START]: this.start.bind(this)
+            [PayloadType.HOST_START]: this.start.bind(this)
         };
     }
     onLeave(ws) {
         this.broadcast({
-            type: UnoPayloadType.PLAYER_LEAVE,
+            type: PayloadType.PLAYER_LEAVE,
             data: ws.id
         });
     }
@@ -65,18 +51,18 @@ class UnoRoom extends Room {
         for (const other of this.clients)
             if (other !== ws)
                 ws.send(JSON.stringify({
-                    type: UnoPayloadType.PLAYER_JOIN,
+                    type: PayloadType.PLAYER_JOIN,
                     data: {
                         id: other.id,
                         nickname: other.nickname
                     }
                 }));
         ws.send(JSON.stringify({
-            type: UnoPayloadType.PLAYER_ID,
+            type: PayloadType.PLAYER_ID,
             data: ws.id
         }));
         this.broadcast({
-            type: UnoPayloadType.PLAYER_JOIN,
+            type: PayloadType.PLAYER_JOIN,
             data: {
                 id: ws.id,
                 nickname: ws.nickname
@@ -87,11 +73,11 @@ class UnoRoom extends Room {
         const card = this.pile.pop();
         player.hand.push(card);
         player.send(JSON.stringify({
-            type: UnoPayloadType.RECEIVE_CARD,
+            type: PayloadType.RECEIVE_CARD,
             data: card
         }));
         this.broadcast({
-            type: UnoPayloadType.PLAYER_DREW,
+            type: PayloadType.PLAYER_DREW,
             data: player.id
         });
     }
@@ -99,7 +85,7 @@ class UnoRoom extends Room {
         if (host.ip !== this.ownerIp || this.isRunning || this.clients.size < 2) return;
         this.isRunning = true;
         this.broadcast({
-            type: UnoPayloadType.GAME_STARTED
+            type: PayloadType.GAME_STARTED
         });
         // freeze clients
         this.players = [...this.clients];
@@ -119,11 +105,11 @@ class UnoRoom extends Room {
         await sleep(3);
         this.top = this.pile.pop();
         this.broadcast({
-            type: UnoPayloadType.GAME_BEGIN,
+            type: PayloadType.GAME_BEGIN,
             data: this.top
         });
         this.broadcast({
-            type: UnoPayloadType.GAME_TURN,
+            type: PayloadType.GAME_TURN,
             data: this.turn
         });
     }
