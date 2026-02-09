@@ -58,13 +58,20 @@ let players = {}, playerId, hasStarted = false, isRunning = false, playerTurn, D
                 break;
         }
     };
-    // ws.onclose = handleClose;
+    ws.onclose = e => {
+        popup.innerHTML = `<h1>Disconnected</h1>Reason: <code>${e.reason}</code><br>Code: <code>${e.code}</code>`;
+        popup.style.opacity = 1;
+    };
     ws.send = (type, data) => WebSocket.prototype.send.call(ws, JSON.stringify(data === undefined ? { type } : { type, data }));
 
     // put start button if client is host
     start.hidden = !isHost;
     start.addEventListener('click', () => {
         ws.send(PayloadType.HOST_START);
+    });
+
+    popup.addEventListener('click', () => {
+        popup.style = '';
     });
 })();
 
