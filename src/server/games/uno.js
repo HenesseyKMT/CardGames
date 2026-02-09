@@ -125,7 +125,13 @@ class UnoRoom extends Room {
         });
     }
     async play(player, cardId) {
-        if (this.waitingColorFrom || !player.hand.includes(cardId)) return;
+        if (
+            !Number.isInteger(cardId) ||
+            cardId < 0 ||
+            cardId > DECK.length ||
+            this.waitingColorFrom ||
+            !player.hand.includes(cardId)
+        ) return;
 
         const top = DECK[this.top];
         const card = DECK[cardId];
