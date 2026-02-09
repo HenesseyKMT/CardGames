@@ -39,10 +39,13 @@ class UnoRoom extends Room {
         this.direction = 1; // -1
         this.top = null;
         this.plusCount = 0;
+        this.waitingColorFrom = null;
+        this.chosenColor = null;
         this.isRunning = false;
         this.handlers = {
             [PayloadType.HOST_START]: this.start.bind(this),
             [PayloadType.DISCARD_CARD]: this.play.bind(this)
+            [PayloadType.CHOOSE_COLOR]: this.choseColor.bind(this)
         };
     }
     onLeave(ws) {
@@ -122,14 +125,15 @@ class UnoRoom extends Room {
         });
     }
     async play(player, cardId) {
-        if (!player.hand.includes(cardId)) return;
+        if (this.waitingColorFrom || !player.hand.includes(cardId)) return;
 
         const top = DECK[this.top];
         const card = DECK[cardId];
         if (!(this.turn === player.index && (
             top.color === card.color ||
             (card.type === CardType.NUMBER ? top.value === card.value : top.type === card.type) ||
-            card.color === CardColor.BLACK
+            card.color === CardColor.BLACK ||
+            top.color === CardColor.BLACK && card.color === this.chosenColor
         ) || this.settings.interceptions === State.ON && (
             top.color === card.color &&
             top.type === card.type &&
@@ -144,6 +148,9 @@ class UnoRoom extends Room {
                 cardId
             }
         });
+
+        if (card.color === CardType.BLACK)
+            this.waitingColorFrom = player;
 
         if (card.type === CardType.CHANGE_DIRECTION) {
             if (this.direction > 0) {
@@ -192,6 +199,20 @@ class UnoRoom extends Room {
         this.broadcast({
             type: PayloadType.GAME_TURN,
             data: this.turn
+        });
+    }
+    choseColor(player, color) {
+        if (this.waitingColorFrom !== player || !(
+            color === CardColor.RED ||
+            color === CardColor.GREEN ||
+            color === CardColor.BLUE ||
+            color === CardColor.YELLOW
+        )) return;
+        this.waitingColorFrom = null;
+        this.chosenColor = color;
+        this.broadcast({
+            type: PayloadType.CHOSEN_COLOR,
+            data: color
         });
     }
     nextTurn() {

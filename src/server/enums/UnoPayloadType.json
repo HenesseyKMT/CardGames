@@ -14,5 +14,7 @@
 
     "HOST_START": 10,
 
-    "DISCARD_CARD": 11
+    "DISCARD_CARD": 11,
+    "CHOOSE_COLOR": 12,
+    "CHOSEN_COLOR": 13
 }
