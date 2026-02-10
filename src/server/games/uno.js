@@ -155,7 +155,7 @@ class UnoRoom extends Room {
             }
         });
 
-        if (card.color === CardType.BLACK)
+        if (card.color === CardColor.BLACK)
             this.waitingColorFrom = player;
 
         if (card.type === CardType.CHANGE_DIRECTION) {
