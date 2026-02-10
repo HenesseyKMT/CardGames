@@ -1,16 +1,12 @@
-const gameItems = {},
-      roomItems = {};
-
-const [gamesList, roomsList] = document.querySelectorAll('.list');
-
-nickname.value = localStorage.nickname || '';
-nickname.addEventListener('change', () => {
-    localStorage.setItem('nickname', nickname.value);
-});
-
 (async function() {
-    const PayloadType = await jsonFetch('/enums/PayloadType');
+    'use strict';
 
+    const gameItems = {},
+          roomItems = {};
+
+    const [gamesList, roomsList] = document.querySelectorAll('.list');
+
+    const PayloadType = await jsonFetch('/enums/PayloadType');
 
     const realtime = new WebSocket('ws://localhost:8888/realtime');
     realtime.onmessage = message => {
@@ -27,6 +23,7 @@ nickname.addEventListener('change', () => {
                 break;
         }
     };
+
     const games = await jsonFetch('http://localhost:8888/games');
     games.forEach(updateGameItem);
     gamesList.addEventListener('click', e => {
@@ -39,27 +36,32 @@ nickname.addEventListener('change', () => {
         if (e.target.tagName !== 'DIV') return;
         location.href = location.origin + '/games/' + e.target.dataset.game + '?id=' + e.target.dataset.id;
     });
+
+    nickname.value = localStorage.nickname || '';
+    nickname.addEventListener('change', () => {
+        localStorage.setItem('nickname', nickname.value);
+    });
+
+    function updateGameItem(game) {
+        const item = (gameItems[game.id] ||= gamesList.appendChild(document.createElement('div')));
+        item.dataset.id = game.id;
+        item.innerHTML = `<b>${game.name}</b><br>Queue: ${game.waiting}<br>Games: ${game.running}`;
+    }
+
+    function updateRoomItem(room) {
+        const item = (roomItems[room.id] ||= roomsList.appendChild(document.createElement('div')));
+        item.dataset.game = room.game;
+        item.dataset.id = room.id;
+        item.innerHTML = `<b>${room.name}</b><br>Players: ${room.players}`;
+    }
+
+    function deleteRoomItem(roomId) {
+        roomsList.removeChild(roomItems[roomId]);
+        delete roomItems[roomId];
+    }
+
+    async function jsonFetch(...args) {
+        const rk = await fetch(...args);
+        return await rk.json();
+    }
 })();
-
-function updateGameItem(game) {
-    const item = (gameItems[game.id] ||= gamesList.appendChild(document.createElement('div')));
-    item.dataset.id = game.id;
-    item.innerHTML = `<b>${game.name}</b><br>Queue: ${game.waiting}<br>Games: ${game.running}`;
-}
-
-function updateRoomItem(room) {
-    const item = (roomItems[room.id] ||= roomsList.appendChild(document.createElement('div')));
-    item.dataset.game = room.game;
-    item.dataset.id = room.id;
-    item.innerHTML = `<b>${room.name}</b><br>Players: ${room.players}`;
-}
-
-function deleteRoomItem(roomId) {
-    roomsList.removeChild(roomItems[roomId]);
-    delete roomItems[roomId];
-}
-
-async function jsonFetch(...args) {
-    const rk = await fetch(...args);
-    return await rk.json();
-}

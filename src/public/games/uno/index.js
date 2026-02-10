@@ -1,15 +1,24 @@
-const s = new URLSearchParams(location.search);
-const roomId = s.get('id');
-const isHost = s.get('host') === "true";
-
-let players = {}, playerId, hasStarted = false, isRunning = false, playerTurn, DECK, CardType, ws, PayloadType, discarded;
-
 (async function() {
-    PayloadType = await jsonFetch('/enums/UnoPayloadType');
-    CardType = await jsonFetch('/enums/UnoCardType');
-    DECK = await jsonFetch('/data/uno');
+    'use strict';
 
-    ws = new WebSocket(`ws://localhost:8888?id=${roomId}&nickname=${encodeURIComponent(localStorage.nickname || '')}`);
+    const s = new URLSearchParams(location.search);
+    const roomId = s.get('id');
+    const isHost = s.get('host') === "true";
+
+    let hasStarted = false,
+        isRunning = false;
+
+    const players = {};
+    let playerId, playerTurn;
+
+    let discarded;
+
+    const PayloadType = await jsonFetch('/enums/UnoPayloadType'),
+          CardType = await jsonFetch('/enums/UnoCardType'),
+          CardColor = await jsonFetch('/enums/UnoCardColor'),
+          DECK = await jsonFetch('/data/uno');
+
+    const ws = new WebSocket(`ws://localhost:8888?id=${roomId}&nickname=${encodeURIComponent(localStorage.nickname || '')}`);
     ws.onmessage = message => {
         const { type, data } = JSON.parse(message.data);
         switch (type) {
@@ -73,201 +82,201 @@ let players = {}, playerId, hasStarted = false, isRunning = false, playerTurn, D
     popup.addEventListener('click', () => {
         popup.style = '';
     });
-})();
 
-// TODO: should put this inside theme.js (but rename the file)
-async function jsonFetch(...args) {
-    const rk = await fetch(...args);
-    return await rk.json();
-}
-
-const config = {
-    handsDisplayCompact: false,
-}
-
-const handSlots = {
-    left: document.getElementById('left-hands'),
-    top: document.getElementById('top-hands'),
-    right: document.getElementById('right-hands'),
-    bottom: document.getElementById('bottom-hands')
-};
-
-const card = document.createElement('i');
-card.className = 'card';
-
-const discardTop = card.cloneNode(true);
-
-function setCardPosition(element, id) {
-    const { type, value, color } = DECK[id];
-    element.dataset.id = id;
-    element.style.setProperty('--x',
-        type === CardType.NUMBER ? value :
-        type === CardType.JOKER ? 0 :
-        type === CardType.PLUS_FOUR ? 1 :
-        9 + type
-    );
-    element.style.setProperty('--y', color);
-}
-
-function addPlayer(id, nickname) {
-    const playerElement = document.createElement('div');
-    playerElement.className = 'hand';
-    const nicknameDisplay = document.createElement('span');
-    nicknameDisplay.innerText = nickname;
-    const handElement = document.createElement('div');
-    playerElement.append(nicknameDisplay, handElement);
-    players[id] = {
-        id,
-        nickname,
-        nicknameDisplay,
-        playerElement,
-        handElement
-    };
-    if (id === playerId) {
-        handSlots.bottom.appendChild(playerElement);
-        handElement.addEventListener('click', event => {
-            discarded = event.target;
-            const id = parseInt(discarded?.dataset.id);
-            if (!Number.isInteger(id) || id < 0) return;
-            ws.send(PayloadType.DISCARD_CARD, id);
-        });
+    // TODO: should put this inside theme.js (but rename the file)
+    async function jsonFetch(...args) {
+        const rk = await fetch(...args);
+        return await rk.json();
     }
-    orderPlayers();
-}
 
-function deletePlayer(id) {
-    const { playerElement } = players[id];
-    playerElement.remove();
-    delete players[id];
-    orderPlayers();
-}
+    const config = {
+        handsDisplayCompact: false,
+    }
 
-function orderPlayers() {
-    const p = Object.values(players);
-    while (p[0].id < playerId) p.push(p.shift());
-    p.shift(); // player
-    const c = p.length;
-    let n = 0;
-    while (c - 2 * n >= n) n++;
-    n--;
-    let i = 0;
-    const m = c - 2 * n;
-    for (let j = 0; j < n; j++)
-        handSlots.left.appendChild(p[i++].playerElement);
-    for (let j = 0; j < m; j++)
-        handSlots.top.appendChild(p[i++].playerElement);
-    for (let j = 0; j < n; j++)
-        handSlots.right.appendChild(p[i++].playerElement);
-}
+    const handSlots = {
+        left: document.getElementById('left-hands'),
+        top: document.getElementById('top-hands'),
+        right: document.getElementById('right-hands'),
+        bottom: document.getElementById('bottom-hands')
+    };
 
-function addCard(id, cardId) {
-    // thanks ChatGPT, I was about to lose my mind on this
-    // FIXME: left and right hands are offseted
+    const card = document.createElement('i');
+    card.className = 'card';
 
-    const { handElement, playerElement } = players[id];
+    const discardTop = card.cloneNode(true);
 
-    const target = card.cloneNode(true);
-    handElement.appendChild(target);
+    function setCardPosition(element, id) {
+        const { type, value, color } = DECK[id];
+        element.dataset.id = id;
+        element.style.setProperty('--x',
+            type === CardType.NUMBER ? value :
+            type === CardType.JOKER ? 0 :
+            type === CardType.PLUS_FOUR ? 1 :
+            9 + type
+        );
+        element.style.setProperty('--y', color);
+    }
 
-    const pileCard = pile.firstElementChild;
-    const from = pileCard.getBoundingClientRect();
-    const to = target.getBoundingClientRect();
+    function addPlayer(id, nickname) {
+        const playerElement = document.createElement('div');
+        playerElement.className = 'hand';
+        const nicknameDisplay = document.createElement('span');
+        nicknameDisplay.innerText = nickname;
+        const handElement = document.createElement('div');
+        playerElement.append(nicknameDisplay, handElement);
+        players[id] = {
+            id,
+            nickname,
+            nicknameDisplay,
+            playerElement,
+            handElement
+        };
+        if (id === playerId) {
+            handSlots.bottom.appendChild(playerElement);
+            handElement.addEventListener('click', event => {
+                discarded = event.target;
+                const id = parseInt(discarded?.dataset.id);
+                if (!Number.isInteger(id) || id < 0) return;
+                ws.send(PayloadType.DISCARD_CARD, id);
+            });
+        }
+        orderPlayers();
+    }
 
-    target.remove();
+    function deletePlayer(id) {
+        const { playerElement } = players[id];
+        playerElement.remove();
+        delete players[id];
+        orderPlayers();
+    }
 
-    const ghost = pileCard.cloneNode(true);
-    document.body.appendChild(ghost);
+    function orderPlayers() {
+        const p = Object.values(players);
+        while (p[0].id < playerId) p.push(p.shift());
+        p.shift(); // player
+        const c = p.length;
+        let n = 0;
+        while (c - 2 * n >= n) n++;
+        n--;
+        let i = 0;
+        const m = c - 2 * n;
+        for (let j = 0; j < n; j++)
+            handSlots.left.appendChild(p[i++].playerElement);
+        for (let j = 0; j < m; j++)
+            handSlots.top.appendChild(p[i++].playerElement);
+        for (let j = 0; j < n; j++)
+            handSlots.right.appendChild(p[i++].playerElement);
+    }
 
-    ghost.style.position = 'fixed';
-    ghost.style.left = from.left + 'px';
-    ghost.style.top = from.top + 'px';
-    ghost.style.margin = '0';
-    ghost.style.zIndex = '9999';
+    function addCard(id, cardId) {
+        // thanks ChatGPT, I was about to lose my mind on this
+        // FIXME: left and right hands are offseted
 
-    const dx = to.left - from.left;
-    const dy = to.top - from.top;
-    const rot = playerElement.parentElement.style.getPropertyValue('--rotation');
+        const { handElement, playerElement } = players[id];
 
-    ghost.style.transformOrigin = 'center center';
+        const target = card.cloneNode(true);
+        handElement.appendChild(target);
 
-    if (playerId === id) ghost.animate([{
-        transform: 'translate(0px, 0px) scale(1.5) rotate(0deg)'
-    }, {
-        transform: `translate(${dx * 0.7}px, ${dy * 0.7}px) scale(1.5) rotateY(90deg)`
-    }], {
-        duration: 300,
-        fill: 'forwards'
-    }).onfinish = () => {
-        setCardPosition(ghost, cardId);
-        ghost.animate([{
-            transform: `translate(${dx}px, ${dy}px) scale(1.5)`
+        const pileCard = pile.firstElementChild;
+        const from = pileCard.getBoundingClientRect();
+        const to = target.getBoundingClientRect();
+
+        target.remove();
+
+        const ghost = pileCard.cloneNode(true);
+        document.body.appendChild(ghost);
+
+        ghost.style.position = 'fixed';
+        ghost.style.left = from.left + 'px';
+        ghost.style.top = from.top + 'px';
+        ghost.style.margin = '0';
+        ghost.style.zIndex = '9999';
+
+        const dx = to.left - from.left;
+        const dy = to.top - from.top;
+        const rot = playerElement.parentElement.style.getPropertyValue('--rotation');
+
+        ghost.style.transformOrigin = 'center center';
+
+        if (playerId === id) ghost.animate([{
+            transform: 'translate(0px, 0px) scale(1.5) rotate(0deg)'
+        }, {
+            transform: `translate(${dx * 0.7}px, ${dy * 0.7}px) scale(1.5) rotateY(90deg)`
         }], {
-            duration: 100,
+            duration: 300,
             fill: 'forwards'
         }).onfinish = () => {
+            setCardPosition(ghost, cardId);
+            ghost.animate([{
+                transform: `translate(${dx}px, ${dy}px) scale(1.5)`
+            }], {
+                duration: 100,
+                fill: 'forwards'
+            }).onfinish = () => {
+                ghost.remove();
+                setCardPosition(target, cardId);
+                handElement.appendChild(target);
+            };
+        };
+        else ghost.animate(
+            [
+                {
+                    transform: 'translate(0px, 0px) scale(1.5) rotate(0deg)'
+                },
+                {
+                    transform: `translate(${dx}px, ${dy}px) scale(1) rotate(${rot})`
+                }
+            ],
+            {
+                duration: 500,
+                easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+                fill: 'forwards'
+            }
+        ).onfinish = () => {
             ghost.remove();
-            setCardPosition(target, cardId);
             handElement.appendChild(target);
         };
-    };
-    else ghost.animate(
-        [
-            {
-                transform: 'translate(0px, 0px) scale(1.5) rotate(0deg)'
-            },
-            {
-                transform: `translate(${dx}px, ${dy}px) scale(1) rotate(${rot})`
-            }
-        ],
-        {
-            duration: 500,
-            easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-            fill: 'forwards'
-        }
-    ).onfinish = () => {
-        ghost.remove();
-        handElement.appendChild(target);
-    };
-}
+    }
 
-function removeCard(id, cardId) {
-    const { handElement, playerElement } = players[id];
+    function removeCard(id, cardId) {
+        const { handElement, playerElement } = players[id];
 
-    const target = playerId === id ? discarded : handElement.children.item(Math.floor(Math.random() * handElement.childElementCount));
+        const target = playerId === id ? discarded : handElement.children.item(Math.floor(Math.random() * handElement.childElementCount));
 
-    const from = discardTop.getBoundingClientRect();
-    const to = target.getBoundingClientRect();
+        const from = discardTop.getBoundingClientRect();
+        const to = target.getBoundingClientRect();
 
-    const dx = to.left - from.left - 13;
-    const dy = to.top - from.top - 20;
-    const rot = playerElement.parentElement.style.getPropertyValue('--rotation');
+        const dx = to.left - from.left - 13;
+        const dy = to.top - from.top - 20;
+        const rot = playerElement.parentElement.style.getPropertyValue('--rotation');
 
-    target.style.transformOrigin = 'center center';
-    // FIXME: scale(1.5) fucks up everything change to width/height
-    if (playerId === id) target.animate([{
-        transform: `translate(${-dx}px, calc(${-dy}px)`
-    }], {
-        duration: 400,
-        fill: 'forwards'
-    }).onfinish = () => {
-        target.remove();
-        setCardPosition(discardTop, cardId);
-    };
-    else target.animate([{
-        transform: `translate(${dx * 0.7}px, ${dy * 0.7}px) scale(${1.5 * 0.9}) rotate(-${rot}) rotateY(90deg)`
-    }], {
-        duration: 300,
-        fill: 'forwards'
-    }).onfinish = () => {
-        setCardPosition(target, cardId);
-        target.animate([{
-            transform: `translate(${dx}px, ${dy}px) scale(1.5) rotate(-${rot})`
+        target.style.transformOrigin = 'center center';
+        // FIXME: scale(1.5) fucks up everything change to width/height
+        if (playerId === id) target.animate([{
+            transform: `translate(${-dx}px, calc(${-dy}px)`
         }], {
-            duration: 100,
+            duration: 400,
             fill: 'forwards'
         }).onfinish = () => {
             target.remove();
             setCardPosition(discardTop, cardId);
         };
-    };
-}
+        else target.animate([{
+            transform: `translate(${dx * 0.7}px, ${dy * 0.7}px) scale(${1.5 * 0.9}) rotate(-${rot}) rotateY(90deg)`
+        }], {
+            duration: 300,
+            fill: 'forwards'
+        }).onfinish = () => {
+            setCardPosition(target, cardId);
+            target.animate([{
+                transform: `translate(${dx}px, ${dy}px) scale(1.5) rotate(-${rot})`
+            }], {
+                duration: 100,
+                fill: 'forwards'
+            }).onfinish = () => {
+                target.remove();
+                setCardPosition(discardTop, cardId);
+            };
+        };
+    }
+})();
