@@ -13,6 +13,8 @@
 
     let discarded;
 
+    const colorChooser = document.getElementById('color-chooser');
+
     const PayloadType = await jsonFetch('/enums/UnoPayloadType'),
           CardType = await jsonFetch('/enums/UnoCardType'),
           CardColor = await jsonFetch('/enums/UnoCardColor'),
@@ -33,7 +35,7 @@
                 removeCard(data.id, data.cardId);
                 if (data.id === playerId && DECK[data.cardId].color === CardColor.BLACK) {
                     popup.innerHTML = '';
-                    popup.appendChild(document.getElementById('color-chooser'));
+                    popup.appendChild(colorChooser);
                     popup.style.opacity = 1;
                 }
                 break;
@@ -87,6 +89,13 @@
     document.body.addEventListener('click', event => {
         if (event.target === document.body)
             popup.style = '';
+    });
+
+    colorChooser.addEventListener('click', event => {
+        if (event.target.tagName === 'I') {
+            ws.send(PayloadType.CHOOSE_COLOR, parseInt(event.target.dataset.id));
+            popup.style = '';
+        }
     });
 
     // TODO: should put this inside theme.js (but rename the file)

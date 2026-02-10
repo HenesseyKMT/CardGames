@@ -158,3 +158,9 @@ td {
 #popup #color-chooser {
     display: block;
 }
+
+#color-chooser i {
+    display: block;
+    height: 100px;
+    width: 100px;
+}
