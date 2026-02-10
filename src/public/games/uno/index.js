@@ -84,8 +84,9 @@
         ws.send(PayloadType.HOST_START);
     });
 
-    popup.addEventListener('click', () => {
-        popup.style = '';
+    document.body.addEventListener('click', event => {
+        if (event.target === document.body)
+            popup.style = '';
     });
 
     // TODO: should put this inside theme.js (but rename the file)
