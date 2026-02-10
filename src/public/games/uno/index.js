@@ -75,7 +75,7 @@
         }
     };
     ws.onclose = e => {
-        popup.innerHTML = `<h1>Disconnected</h1>Reason: <code>${e.reason}</code><br>Code: <code>${e.code}</code>`;
+        popup.innerHTML = `<h1>Disconnected</h1>Reason: <code>${e.reason || 'Server down'}</code><br>Code: <code>${e.code}</code>`;
         popup.style.opacity = 1;
     };
     ws.send = (type, data) => WebSocket.prototype.send.call(ws, JSON.stringify(data === undefined ? { type } : { type, data }));
