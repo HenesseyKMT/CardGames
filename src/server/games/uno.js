@@ -75,7 +75,7 @@ class UnoRoom extends Room {
                 }
                 this.nextTurn();
             },
-            [CardType.SKIPS]: () => {
+            [CardType.SKIP_TURN]: () => {
                 const player = this.players[this.turn];
                 player.send(JSON.stringify({
                     type: PayloadType.TURN_SKIPPED
@@ -166,7 +166,7 @@ class UnoRoom extends Room {
             if (
                 top.color === CardColor.BLACK ||
                 this.settings.startCardPlusTwoAllowed === State.OFF && top.type === CardType.PLUS_TWO ||
-                this.settings.startCardSkipTurnAllowed === State.OFF && top.type === CardType.SKIPS ||
+                this.settings.startCardSkipTurnAllowed === State.OFF && top.type === CardType.SKIP_TURN ||
                 this.settings.startCardChangeDirectionAllowed === State.OFF && top.type === CardType.CHANGE_DIRECTION
             ) {
                 this.pile.unshift(this.top);
@@ -216,13 +216,13 @@ class UnoRoom extends Room {
         if (card.color === CardColor.BLACK)
             this.waitingColorFrom = player;
 
-        if (card.type === CardType.SKIPS)
+        if (card.type === CardType.SKIP_TURN)
             this.cardsHandlers[card.type]?.();
 
         this.top = cardId;
         this.nextTurn();
 
-        if (card.type !== CardType.SKIPS)
+        if (card.type !== CardType.SKIP_TURN)
             this.cardsHandlers[card.type]?.();
 
         this.broadcast({

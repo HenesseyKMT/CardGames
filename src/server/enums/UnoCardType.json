@@ -1,6 +1,6 @@
 {
     "NUMBER": 0,
-    "SKIPS": 1,
+    "SKIP_TURN": 1,
     "CHANGE_DIRECTION": 2,
     "PLUS_TWO": 3,
     "JOKER": 4,
