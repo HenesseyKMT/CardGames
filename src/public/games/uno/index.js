@@ -14,6 +14,7 @@
     let discarded;
 
     const colorChooser = document.getElementById('color-chooser');
+    const turnSkip = document.getElementById('turn-skip');
 
     const PayloadType = await jsonFetch('/enums/UnoPayloadType'),
           CardType = await jsonFetch('/enums/UnoCardType'),
@@ -27,6 +28,15 @@
             // Self
             case PayloadType.RECEIVE_CARD: // deck and draw
                 addCard(playerId, data);
+                break;
+            case PayloadType.CHOSEN_COLOR:
+                break;
+            case PayloadType.TURN_SKIPPED:
+                turnSkip.animate([
+                    { display: 'block' },
+                    { width: '60%' },
+                    {}
+                ], { duration: 300 });
                 break;
 
             // Broadcast

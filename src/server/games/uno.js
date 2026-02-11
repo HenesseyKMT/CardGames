@@ -199,6 +199,9 @@ class UnoRoom extends Room {
                 this.nextTurn();
                 break;
             case CardType.SKIPS:
+                nextPlayer.send(JSON.stringify({
+                    type: PayloadType.TURN_SKIPPED
+                }));
                 this.nextTurn();
                 break;
         }

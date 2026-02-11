@@ -16,5 +16,6 @@
 
     "DISCARD_CARD": 11,
     "CHOOSE_COLOR": 12,
-    "CHOSEN_COLOR": 13
+    "CHOSEN_COLOR": 13,
+    "TURN_SKIPPED": 14
 }
