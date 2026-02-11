@@ -218,13 +218,13 @@ class UnoRoom extends Room {
         if (card.color === CardColor.BLACK)
             this.waitingColorFrom = player;
 
-        if (card.type === CardType.SKIP_TURN)
+        if (card.type === CardType.CHANGE_DIRECTION)
             await this.cardsHandlers[card.type]?.();
 
         this.top = cardId;
         this.nextTurn();
 
-        if (card.type !== CardType.SKIP_TURN)
+        if (card.type !== CardType.CHANGE_DIRECTION)
             await this.cardsHandlers[card.type]?.();
 
         this.broadcast({
