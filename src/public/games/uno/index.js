@@ -99,6 +99,7 @@
     ws.onclose = e => {
         popup.innerHTML = `<h1>Disconnected</h1>Reason: <code>${e.reason || 'Server down'}</code><br>Code: <code>${e.code}</code>`;
         showPopup();
+        document.addEventListener('click', hidePopup);
     };
     ws.send = (type, data) => WebSocket.prototype.send.call(ws, JSON.stringify(data === undefined ? { type } : { type, data }));
 
@@ -108,10 +109,6 @@
         ws.send(PayloadType.HOST_START);
     });
 
-    document.body.addEventListener('click', event => {
-        if (event.target === document.body)
-            hidePopup();
-    });
 
     colorChooser.addEventListener('click', event => {
         if (event.target.tagName === 'I') {
@@ -136,6 +133,7 @@
         setTimeout(() => {
             popup.style.display = 'none';
         }, 1000);
+        document.EventListener('click', hidePopup);
     }
 
     const config = {
