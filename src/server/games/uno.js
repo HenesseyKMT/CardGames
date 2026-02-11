@@ -66,8 +66,7 @@ class UnoRoom extends Room {
                 const player = this.players[this.turn];
                 this.plusCount += 4;
                 if (
-                    this.settings.stackPlusFour === State.ON && has(player, CardType.PLUS_FOUR) ||
-                    this.settings.stackPlusTwoOverPlusFour === State.ON && has(player, CardType.PLUS_TWO)
+                    this.settings.stackPlusFour === State.ON && has(player, CardType.PLUS_FOUR)
                 ) return;
                 for (; this.plusCount > 0; this.plusCount--) {
                     this.draw(player);
