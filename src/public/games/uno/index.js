@@ -10,6 +10,7 @@
 
     const players = {};
     let playerId, playerTurn;
+    let direction = 1;
 
     let discarded;
 
@@ -35,7 +36,7 @@
                 addCard(playerId, data);
                 break;
             case PayloadType.CHOSEN_COLOR:
-                currentColor.style.backgroundImage = 'url(assets/' + CardColorToName[data] + '.png)';
+                setCurrentColor(data);
                 break;
             case PayloadType.TURN_SKIPPED:
                 turnSkip.animate([
@@ -43,6 +44,10 @@
                     { width: '60%' },
                     {}
                 ], { duration: 300 });
+                break;
+            case PayloadType.DIRECTION_CHANGED:
+                direction = -direction;
+                currentDirection.style.transform = `rotateX(${direction === 1 ? 0 : 180}deg)`;
                 break;
 
             // Broadcast
@@ -57,7 +62,7 @@
                         showPopup();
                     }
                 } else {
-                    currentColor.style.backgroundImage = 'url(assets/' + CardColorToName[card.color] + '.png)';
+                    setCurrentColor(card.color);
                 }
                 break;
             case PayloadType.PLAYER_DREW:
@@ -77,7 +82,6 @@
 
             // All
             case PayloadType.GAME_TURN: // whose turn is it
-                if (playerTurn) currentDirection.style.transform = `rotateX(${data - playerTurn < 0 ? 180 : 0}deg)`;
                 players[playerTurn]?.nicknameDisplay.classList.remove('playing');
                 players[playerTurn = data]?.nicknameDisplay.classList.add('playing');
                 break;
@@ -89,6 +93,7 @@
                 isRunning = true;
                 setCardPosition(discardTop, data);
                 discard.appendChild(discardTop);
+                setCurrentColor(DECK[data].color);
                 break;
             case PayloadType.GAME_SUMMARY: // end game
                 // player id
@@ -109,13 +114,16 @@
         ws.send(PayloadType.HOST_START);
     });
 
-
     colorChooser.addEventListener('click', event => {
         if (event.target.tagName === 'I') {
             ws.send(PayloadType.CHOOSE_COLOR, parseInt(event.target.dataset.id));
             hidePopup();
         }
     });
+
+    function setCurrentColor(color) {
+        currentColor.style.backgroundImage = 'url(assets/' + CardColorToName[color] + '.png)';
+    }
 
     // TODO: should put this inside theme.js (but rename the file)
     async function jsonFetch(...args) {
