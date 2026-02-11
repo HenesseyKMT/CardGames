@@ -133,7 +133,7 @@
         setTimeout(() => {
             popup.style.display = 'none';
         }, 1000);
-        document.EventListener('click', hidePopup);
+        document.removeEventListener('click', hidePopup);
     }
 
     const config = {
