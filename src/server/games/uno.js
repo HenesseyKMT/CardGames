@@ -48,27 +48,27 @@ class UnoRoom extends Room {
             [PayloadType.CHOOSE_COLOR]: this.choseColor.bind(this)
         };
         this.cardsHandlers = {
-            [CardType.PLUS_TWO]: () => {
+            [CardType.PLUS_TWO]: async () => {
                 const player = this.players[this.turn];
                 this.plusCount += 2;
                 if (
                     this.settings.stackPlusTwo === State.ON && has(player, CardType.PLUS_TWO) ||
                     this.settings.jokerCancelsPlusTwo === State.ON && has(player, CardType.JOKER) ||
                     this.settings.stackPlusFourOverPlusTwo === State.ON && has(player, CardType.PLUS_FOUR)
-                ) break;
+                ) return;
                 for (; this.plusCount > 0; this.plusCount--) {
                     this.draw(player);
                     await sleep(this.settings.drawingIntervalCooldown);
                 }
                 this.nextTurn();
             },
-            [CardType.PLUS_FOUR]: () => {
+            [CardType.PLUS_FOUR]: async () => {
                 const player = this.players[this.turn];
                 this.plusCount += 4;
                 if (
                     this.settings.stackPlusFour === State.ON && has(player, CardType.PLUS_FOUR) ||
                     this.settings.stackPlusTwoOverPlusFour === State.ON && has(player, CardType.PLUS_TWO)
-                ) break;
+                ) return;
                 for (; this.plusCount > 0; this.plusCount--) {
                     this.draw(player);
                     await sleep(this.settings.drawingIntervalCooldown);
@@ -83,12 +83,10 @@ class UnoRoom extends Room {
                 this.nextTurn();
             },
             [CardType.CHANGE_DIRECTION]: () => {
-                if (this.direction > 0) {
-                    this.direction = -1   
-                } else {
-                    this.direction = 1
-                }
-                // Boomer: this.direction = -this.direction;
+                this.direction = -this.direction;
+                this.broadcast({
+                    type: PayloadType.DIRECTION_CHANGED
+                });
             }
         }
     }
@@ -217,13 +215,13 @@ class UnoRoom extends Room {
             this.waitingColorFrom = player;
 
         if (card.type === CardType.SKIP_TURN)
-            this.cardsHandlers[card.type]?.();
+            await this.cardsHandlers[card.type]?.();
 
         this.top = cardId;
         this.nextTurn();
 
         if (card.type !== CardType.SKIP_TURN)
-            this.cardsHandlers[card.type]?.();
+            await this.cardsHandlers[card.type]?.();
 
         this.broadcast({
             type: PayloadType.GAME_TURN,
