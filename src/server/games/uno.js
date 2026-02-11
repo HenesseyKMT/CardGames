@@ -114,7 +114,19 @@ class UnoRoom extends Room {
             }
         // draw first card
         await sleep(this.settings.drawingIntervalCooldown);
-        this.top = this.pile.pop();
+
+        let top;
+        while (true) {
+            this.top = this.pile.pop();
+            top = DECK[this.top];
+            if (
+                this.settings.startCardPlusTwoAllowed === State.OFF && top.type === CardType.PLUS_TWO ||
+                this.settings.startCardSkipTurnAllowed === State.OFF && top.type === CardType.SKIPS ||
+                this.settings.startCardChangeDirectionAllowed === State.OFF && top.type === CardType.CHANGE_DIRECTION
+            ) {
+                this.pile.unshift(this.top);
+            } else break;
+        }
         this.broadcast({
             type: PayloadType.GAME_BEGIN,
             data: this.top
@@ -123,6 +135,14 @@ class UnoRoom extends Room {
             type: PayloadType.GAME_TURN,
             data: this.turn
         });
+        switch (top.type) {
+            case CardType.PLUS_TWO:
+                break;
+            case CardType.SKIPS:
+                break;
+            case CardType.CHANGE_DIRECTION:
+                break;
+        }
     }
     async play(player, cardId) {
         if (
