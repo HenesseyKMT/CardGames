@@ -8,7 +8,7 @@
 
     const PayloadType = await jsonFetch('/enums/PayloadType');
 
-    const realtime = new WebSocket('ws://localhost:8888/realtime');
+    const realtime = new WebSocket(`${location.protocol === 'http:' ? 'ws' : 'wss'}://${location.host}/realtime`);
     realtime.onmessage = message => {
         const { type, data } = JSON.parse(message.data);
         switch (type) {
@@ -24,13 +24,13 @@
         }
     };
 
-    const games = await jsonFetch('http://localhost:8888/games');
+    const games = await jsonFetch('/games');
     games.forEach(updateGameItem);
     gamesList.addEventListener('click', e => {
         if (e.target.tagName !== 'DIV') return;
         location.href = location.origin + '/make/' + e.target.dataset.id;
     });
-    const rooms = await jsonFetch('http://localhost:8888/rooms');
+    const rooms = await jsonFetch('/rooms');
     rooms.forEach(updateRoomItem);
     roomsList.addEventListener('click', e => {
         if (e.target.tagName !== 'DIV') return;

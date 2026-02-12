@@ -28,7 +28,7 @@
 
     const CardColorToName = Object.fromEntries(Object.entries(CardColor).map(([k, v]) => [v, k.toLowerCase()]));
 
-    const ws = new WebSocket(`ws://localhost:8888?id=${roomId}&nickname=${encodeURIComponent(localStorage.nickname || '')}`);
+    const ws = new WebSocket(`${location.protocol === 'http:' ? 'ws' : 'wss'}://${location.host}?id=${roomId}&nickname=${encodeURIComponent(localStorage.nickname || '')}`);
     ws.onmessage = message => {
         const { type, data } = JSON.parse(message.data);
         switch (type) {
