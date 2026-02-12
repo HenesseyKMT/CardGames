@@ -106,7 +106,7 @@ wss.on('connection', (ws, req) => {
                 ipsOnCooldown.set(ws.ip, Date.now() + 60000);
                 ws.close(1009, 'Unauthorized');
             }
-            room.handlers[type]?.(ws, data);
+            room.constructor.handlers[type]?.call(room, ws, data);
         });
         ws.on('close', () => room.leave(ws));
     }

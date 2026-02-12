@@ -29,7 +29,192 @@ function has(player, type) {
     return false;
 }
 
+const cardsHandlers = {
+    // TODO: make it possible to skip when you have +4/+2/JOKER and top is +4/+2
+    [CardType.PLUS_TWO]: async function() {
+        const player = this.players[this.turn];
+        this.plusCount += 2;
+        if (
+            this.settings.stackPlusTwo === State.ON && has(player, CardType.PLUS_TWO) ||
+            this.settings.jokerCancelsPlusTwo === State.ON && has(player, CardType.JOKER) ||
+            this.settings.stackPlusFourOverPlusTwo === State.ON && has(player, CardType.PLUS_FOUR)
+        ) return;
+        for (; this.plusCount > 0; this.plusCount--) {
+            this.draw(player);
+            await sleep(this.settings.drawingIntervalCooldown);
+        }
+        this.nextTurn();
+    },
+    [CardType.PLUS_FOUR]: async function() {
+        const player = this.players[this.turn];
+        this.plusCount += 4;
+        if (
+            this.settings.stackPlusFour === State.ON && has(player, CardType.PLUS_FOUR)
+        ) return;
+        for (; this.plusCount > 0; this.plusCount--) {
+            this.draw(player);
+            await sleep(this.settings.drawingIntervalCooldown);
+        }
+        this.nextTurn();
+    },
+    [CardType.SKIP_TURN]: function() {
+        const player = this.players[this.turn];
+        player.send(JSON.stringify({
+            type: PayloadType.TURN_SKIPPED
+        }));
+        this.nextTurn();
+    },
+    [CardType.CHANGE_DIRECTION]: function() {
+        this.direction = -this.direction;
+        this.broadcast({
+            type: PayloadType.DIRECTION_CHANGED
+        });
+    },
+    [CardType.JOKER]: function() {
+        this.plusCount = 0;
+    }
+};
+
 class UnoRoom extends Room {
+    static handlers = {
+        [PayloadType.HOST_START]: async function(host) {
+            if (host.id !== 0 || this.isRunning || this.clients.size < 2) return;
+            this.isRunning = true;
+            this.broadcast({
+                type: PayloadType.GAME_STARTED
+            });
+            // freeze clients
+            this.players = [...this.clients];
+            // shuffle
+            let n = CARDS_COUNT;
+            for (let i = 0; i < CARDS_COUNT; i++)
+                this.pile.push(this.discard.splice(Math.floor(Math.random() * n--), 1)[0]);
+            // distribute
+            let i = 0;
+            for (const player of this.players) {
+                player.hand = [];
+                player.index = i++;
+            }
+            for (let i = 0; i < 7; i++)
+                for (const player of this.players) {
+                    this.draw(player);
+                    await sleep(this.settings.drawingIntervalCooldown);
+                }
+            // draw first card
+            await sleep(this.settings.drawingIntervalCooldown);
+
+            let top;
+            while (true) {
+                this.top = this.pile.pop();
+                top = DECK[this.top];
+                if (
+                    top.color === CardColor.BLACK ||
+                    this.settings.startCardPlusTwoAllowed === State.OFF && top.type === CardType.PLUS_TWO ||
+                    this.settings.startCardSkipTurnAllowed === State.OFF && top.type === CardType.SKIP_TURN ||
+                    this.settings.startCardChangeDirectionAllowed === State.OFF && top.type === CardType.CHANGE_DIRECTION
+                ) {
+                    this.pile.unshift(this.top);
+                } else break;
+            }
+            this.broadcast({
+                type: PayloadType.GAME_BEGIN,
+                data: this.top
+            });
+            this.broadcast({
+                type: PayloadType.GAME_TURN,
+                data: this.players[this.turn].id
+            });
+            cardsHandlers[top.type]?.call(this);
+        },
+        [PayloadType.DISCARD_CARD]: async function(player, cardId) {
+            if (
+                !Number.isInteger(cardId) ||
+                cardId < 0 ||
+                cardId > DECK.length ||
+                this.waitingColorFrom ||
+                !player.hand.includes(cardId)
+            ) return;
+
+            const top = DECK[this.top];
+            const card = DECK[cardId];
+            if (!(this.turn === player.index && (
+                top.color === card.color ||
+                (card.type === CardType.NUMBER ? top.value === card.value : top.type === card.type) ||
+                card.color === CardColor.BLACK ||
+                top.color === CardColor.BLACK && card.color === this.chosenColor
+            ) || this.settings.interceptions === State.ON && (
+                top.color === card.color &&
+                top.type === card.type &&
+                top.color !== CardColor.BLACK
+            ))) return;
+
+            this.turn = player.index; // for interceptions
+            player.hand.remove(cardId);
+            this.broadcast({
+                type: PayloadType.PLAYER_DISCARDED,
+                data: {
+                    id: player.id,
+                    cardId
+                }
+            });
+
+            if (card.color === CardColor.BLACK)
+                this.waitingColorFrom = player;
+
+            if (card.type === CardType.CHANGE_DIRECTION)
+                await cardsHandlers[card.type]?.call(this);
+
+            this.top = cardId;
+            this.nextTurn();
+
+            if (card.type !== CardType.CHANGE_DIRECTION)
+                await cardsHandlers[card.type]?.call(this);
+
+            this.broadcast({
+                type: PayloadType.GAME_TURN,
+                data: this.players[this.turn].id
+            });
+
+            this.drewCard = false;
+        },
+        [PayloadType.CHOOSE_COLOR]: function(player, color) {
+            if (this.waitingColorFrom !== player || !(
+                color === CardColor.RED ||
+                color === CardColor.GREEN ||
+                color === CardColor.BLUE ||
+                color === CardColor.YELLOW
+            )) return;
+            this.waitingColorFrom = null;
+            this.chosenColor = color;
+            this.broadcast({
+                type: PayloadType.CHOSEN_COLOR,
+                data: color
+            });
+        },
+        [PayloadType.DRAW_CARD]: function(player) {
+            if (
+                this.drewCard ||
+                this.waitingColorFrom ||
+                this.turn !== player.index
+            ) return;
+            this.drewCard = true;
+            this.draw(player);
+        },
+        [PayloadType.SKIP]: function(player) {
+            if (
+                !this.drewCard ||
+                this.waitingColorFrom ||
+                this.turn !== player.index
+            ) return;
+            this.drewCard = false;
+            this.nextTurn();
+            this.broadcast({
+                type: PayloadType.GAME_TURN,
+                data: this.players[this.turn].id
+            });
+        }
+    };
+
     constructor(...args) {
         super(...args, 'uno');
         this.players = []; // { nickname, hand }
@@ -43,58 +228,6 @@ class UnoRoom extends Room {
         this.chosenColor = null;
         this.drewCard = false;
         this.isRunning = false;
-        this.handlers = {
-            [PayloadType.HOST_START]: this.start.bind(this),
-            [PayloadType.DISCARD_CARD]: this.play.bind(this),
-            [PayloadType.CHOOSE_COLOR]: this.choseColor.bind(this),
-            [PayloadType.DRAW_CARD]: this.drawCard.bind(this),
-            [PayloadType.SKIP]: this.skip.bind(this)
-        };
-        this.cardsHandlers = {
-            // TODO: make it possible to skip when you have +4/+2/JOKER and top is +4/+2
-            [CardType.PLUS_TWO]: async () => {
-                const player = this.players[this.turn];
-                this.plusCount += 2;
-                if (
-                    this.settings.stackPlusTwo === State.ON && has(player, CardType.PLUS_TWO) ||
-                    this.settings.jokerCancelsPlusTwo === State.ON && has(player, CardType.JOKER) ||
-                    this.settings.stackPlusFourOverPlusTwo === State.ON && has(player, CardType.PLUS_FOUR)
-                ) return;
-                for (; this.plusCount > 0; this.plusCount--) {
-                    this.draw(player);
-                    await sleep(this.settings.drawingIntervalCooldown);
-                }
-                this.nextTurn();
-            },
-            [CardType.PLUS_FOUR]: async () => {
-                const player = this.players[this.turn];
-                this.plusCount += 4;
-                if (
-                    this.settings.stackPlusFour === State.ON && has(player, CardType.PLUS_FOUR)
-                ) return;
-                for (; this.plusCount > 0; this.plusCount--) {
-                    this.draw(player);
-                    await sleep(this.settings.drawingIntervalCooldown);
-                }
-                this.nextTurn();
-            },
-            [CardType.SKIP_TURN]: () => {
-                const player = this.players[this.turn];
-                player.send(JSON.stringify({
-                    type: PayloadType.TURN_SKIPPED
-                }));
-                this.nextTurn();
-            },
-            [CardType.CHANGE_DIRECTION]: () => {
-                this.direction = -this.direction;
-                this.broadcast({
-                    type: PayloadType.DIRECTION_CHANGED
-                });
-            },
-            [CardType.JOKER]: () => {
-                this.plusCount = 0;
-            }
-        }
     }
     onLeave(ws) {
         this.broadcast({
@@ -137,147 +270,11 @@ class UnoRoom extends Room {
             data: player.id
         }, player);
     }
-    async start(host) {
-        if (host.id !== 0 || this.isRunning || this.clients.size < 2) return;
-        this.isRunning = true;
-        this.broadcast({
-            type: PayloadType.GAME_STARTED
-        });
-        // freeze clients
-        this.players = [...this.clients];
-        // shuffle
-        let n = CARDS_COUNT;
-        for (let i = 0; i < CARDS_COUNT; i++)
-            this.pile.push(this.discard.splice(Math.floor(Math.random() * n--), 1)[0]);
-        // distribute
-        let i = 0;
-        for (const player of this.players) {
-            player.hand = [];
-            player.index = i++;
-        }
-        for (let i = 0; i < 7; i++)
-            for (const player of this.players) {
-                this.draw(player);
-                await sleep(this.settings.drawingIntervalCooldown);
-            }
-        // draw first card
-        await sleep(this.settings.drawingIntervalCooldown);
-
-        let top;
-        while (true) {
-            this.top = this.pile.pop();
-            top = DECK[this.top];
-            if (
-                top.color === CardColor.BLACK ||
-                this.settings.startCardPlusTwoAllowed === State.OFF && top.type === CardType.PLUS_TWO ||
-                this.settings.startCardSkipTurnAllowed === State.OFF && top.type === CardType.SKIP_TURN ||
-                this.settings.startCardChangeDirectionAllowed === State.OFF && top.type === CardType.CHANGE_DIRECTION
-            ) {
-                this.pile.unshift(this.top);
-            } else break;
-        }
-        this.broadcast({
-            type: PayloadType.GAME_BEGIN,
-            data: this.top
-        });
-        this.broadcast({
-            type: PayloadType.GAME_TURN,
-            data: this.players[this.turn].id
-        });
-        this.cardsHandlers[top.type]?.();
-    }
-    async play(player, cardId) {
-        if (
-            !Number.isInteger(cardId) ||
-            cardId < 0 ||
-            cardId > DECK.length ||
-            this.waitingColorFrom ||
-            !player.hand.includes(cardId)
-        ) return;
-
-        const top = DECK[this.top];
-        const card = DECK[cardId];
-        if (!(this.turn === player.index && (
-            top.color === card.color ||
-            (card.type === CardType.NUMBER ? top.value === card.value : top.type === card.type) ||
-            card.color === CardColor.BLACK ||
-            top.color === CardColor.BLACK && card.color === this.chosenColor
-        ) || this.settings.interceptions === State.ON && (
-            top.color === card.color &&
-            top.type === card.type &&
-            top.color !== CardColor.BLACK
-        ))) return;
-
-        this.turn = player.index; // for interceptions
-        player.hand.remove(cardId);
-        this.broadcast({
-            type: PayloadType.PLAYER_DISCARDED,
-            data: {
-                id: player.id,
-                cardId
-            }
-        });
-
-        if (card.color === CardColor.BLACK)
-            this.waitingColorFrom = player;
-
-        if (card.type === CardType.CHANGE_DIRECTION)
-            await this.cardsHandlers[card.type]?.();
-
-        this.top = cardId;
-        this.nextTurn();
-
-        if (card.type !== CardType.CHANGE_DIRECTION)
-            await this.cardsHandlers[card.type]?.();
-
-        this.broadcast({
-            type: PayloadType.GAME_TURN,
-            data: this.players[this.turn].id
-        });
-
-        this.drewCard = false;
-    }
-    choseColor(player, color) {
-        if (this.waitingColorFrom !== player || !(
-            color === CardColor.RED ||
-            color === CardColor.GREEN ||
-            color === CardColor.BLUE ||
-            color === CardColor.YELLOW
-        )) return;
-        this.waitingColorFrom = null;
-        this.chosenColor = color;
-        this.broadcast({
-            type: PayloadType.CHOSEN_COLOR,
-            data: color
-        });
-    }
     nextTurn() {
         this.turn += this.direction;
         // puts turn back into positives
         this.turn += this.players.length;
         this.turn %= this.players.length;
-    }
-    drawCard(player) {
-        if (
-            this.drewCard ||
-            this.waitingColorFrom ||
-            this.turn !== player.index
-        ) return;
-        this.drewCard = true;
-        this.draw(player);
-    }
-    skip(player) {
-        if (
-            !this.drewCard ||
-            this.waitingColorFrom ||
-            this.turn !== player.index
-        ) return;
-        this.drewCard = false;
-        this.nextTurn();
-        this.broadcast({
-            type: PayloadType.GAME_TURN,
-            data: this.players[this.turn].id
-        });
     }
 }
 
