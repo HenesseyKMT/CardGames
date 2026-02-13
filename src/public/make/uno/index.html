@@ -30,6 +30,9 @@
         <span>Max Players<input name="maxPlayers" type="number" min="0" max="100" value="100"></span><br>
         <br>
         <span>Start Cards<input name="startCards" type="number" min="0" max="100" value="7"></span><br>
+        <span>Start Card Plus Two Allowed<input name="startCardPlusTwoAllowed" type="checkbox"></span><br>
+        <span>Start Card Skip Turn Allowed<input name="startCardSkipTurnAllowed" type="checkbox"></span><br>
+        <span>Start Card Change Direction Allowed<input name="startCardChangeDirectionAllowed" type="checkbox"></span><br>
         <span>Interceptions<input name="interceptions" type="checkbox" checked></span><br>
         <span>Liar<input name="liar" type="checkbox"></span><br>
         <span>Twins<select name="twins">
@@ -39,14 +42,18 @@
         </select></span><br>
         <span>Counter Color<input name="counterColor" type="checkbox"></span><br>
         <span>Stack Plus Four<input name="stackPlusFour" type="checkbox"></span><br>
+        <span>Stack Plus Two<input name="stackPlusTwo" type="checkbox" checked></span><br>
+        <span>Stack Plus Four Over Plus Two<input name="stackPlusFourOverPlusTwo" type="checkbox"></span><br>
         <span>Joker Cancels Plus Two<input name="jokerCancelsPlusTwo" type="checkbox" checked></span><br>
+        <span>End With Black Card Allowed<input name="endWithBlackCardAllowed" type="checkbox"></span><br>
 
         <span>Wrong Card Penality<input name="wrongCardPenality" type="number" min="0" max="100" value="2"></span><br>
         <span>Counter Uno Penality<input name="counterUnoPenality" type="number" min="0" max="100" value="2"></span><br>
         <span>Liar Oponent Penality<input name="liarOponentPenality" type="number" min="0" max="100" value="2"></span><br>
         <span>Liar Self Penality<input name="liarSelfPenality" type="number" min="0" max="100" value="2"></span><br>
 
-        <span>Drawing Interval Cooldown<input name="drawingIntervalCooldown" type="number" step="0.1" min="0" max="1" value="0.7"></span><br>
+        <span>Drawing Interval Cooldown<input name="invactiveTimeout" type="number" step="0.1" min="0" max="1" value="0.3"></span><br>
+        <span>Inactive Timeout<input name="drawingIntervalCooldown" type="number" step="1" min="5" max="30" value="10"></span><br>
         <center><button type="submit">Create</button></center>
     </form>
     <script src="../../theme.js"></script>
