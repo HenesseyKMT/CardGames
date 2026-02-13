@@ -95,7 +95,7 @@ class UnoRoom extends Room {
                 player.hand = [];
                 player.index = i++;
             }
-            for (let i = 0; i < 7; i++)
+            for (let i = 0; i < this.settings.startCards; i++)
                 for (const player of this.players) {
                     this.draw(player);
                     await sleep(this.settings.drawingIntervalCooldown);
@@ -259,6 +259,7 @@ class UnoRoom extends Room {
         });
     }
     draw(player) {
+        if (this.pile.length === 0) return;
         const card = this.pile.pop();
         player.hand.push(card);
         player.send(JSON.stringify({
