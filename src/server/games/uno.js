@@ -145,6 +145,7 @@ class UnoRoom extends Room {
             ) || this.settings.interceptions === State.ON && (
                 top.color === card.color &&
                 top.type === card.type &&
+                top.value === card.value &&
                 top.color !== CardColor.BLACK
             ))) return;
 
