@@ -20,5 +20,7 @@
     "TURN_SKIPPED": 14,
     "DIRECTION_CHANGED": 15,
     "DRAW_CARD": 16,
-    "SKIP": 17
+    "SKIP": 17,
+    "SAY_UNO": 18,
+    "SAY_COUNTER_UNO": 19
 }

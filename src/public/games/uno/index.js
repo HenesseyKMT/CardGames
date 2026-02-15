@@ -137,6 +137,11 @@
         skip.style.opacity = '';
         ws.send(PayloadType.SKIP);
     });
+    uno.addEventListener('click', () => {
+        if (uno.style.opacity !== '1') return;
+        uno.style.opacity = '';
+        ws.send(PayloadType.SAY_UNO);
+    });
 
     function setCurrentColor(color) {
         currentColor.style.backgroundImage = 'url(assets/' + CardColorToName[color] + '.png)';
@@ -195,13 +200,26 @@
         const nicknameDisplay = document.createElement('span');
         nicknameDisplay.innerText = nickname;
         const handElement = document.createElement('div');
-        playerElement.append(nicknameDisplay, handElement);
+        let sayUnoElement = uno;
+        if (id === playerId) {
+            playerElement.append(nicknameDisplay, handElement);
+        } else {
+            sayUnoElement = document.createElement('i');
+            sayUnoElement.addEventListener('click', () => {
+                if (sayUnoElement.style.opacity !== '1') return;
+                sayUnoElement.style.opacity = '';
+                ws.send(PayloadType.SAY_COUNTER_UNO, id);
+            });
+            playerElement.append(nicknameDisplay, sayUnoElement, handElement);
+        }
         players[id] = {
             id,
+            cards: 0,
             nickname,
             nicknameDisplay,
             playerElement,
-            handElement
+            handElement,
+            sayUnoElement
         };
         if (id === playerId) {
             handSlots.bottom.appendChild(playerElement);
@@ -245,7 +263,10 @@
         // thanks ChatGPT, I was about to lose my mind on this
         // FIXME: left and right hands are offseted
 
-        const { handElement, playerElement } = players[id];
+        const player = players[id];
+        const { handElement, playerElement, sayUnoElement } = player;
+        player.cards++;
+        sayUnoElement.style.opacity = '';
 
         const target = card.cloneNode(true);
         handElement.appendChild(target);
@@ -312,7 +333,12 @@
     }
 
     function removeCard(id, cardId) {
-        const { handElement, playerElement } = players[id];
+        const player = players[id];
+        const { handElement, playerElement, sayUnoElement } = player;
+
+        if (--player.cards === 1) {
+            sayUnoElement.style.opacity = 1;
+        }
 
         const target = playerId === id ? discarded : handElement.children.item(Math.floor(Math.random() * handElement.childElementCount));
 

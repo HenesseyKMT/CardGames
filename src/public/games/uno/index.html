@@ -55,12 +55,21 @@
             background-size: 30px;
         }
 
-        #skip {
+        #skip, #uno, .hand > i {
             opacity: .6;
         }
 
         #direction {
             transition: transform 0.5s ease;
+        }
+
+        .hand > i {
+            background-size: 22px;
+            background-image: url(assets/uno.png);
+            width: 22px;
+            height: 22px;
+            display: inline-block;
+            float: right;
         }
     </style>
     <link rel="stylesheet" type="text/css" href="../styles.css">
@@ -75,6 +84,7 @@
         </div>
         <div id="infos">
             <i id="skip" style="background-image: url(assets/skip.png)"></i>
+            <i id="uno" style="background-image: url(assets/uno.png)"></i>
             <i id="direction" style="background-image: url(assets/direction.png)"></i>
             <i id="color"></i>
         </div>
