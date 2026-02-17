@@ -54,7 +54,7 @@ wss.on('connection', (ws, req) => {
     const now = Date.now();
     if (cooldown && cooldown > now)
         return ws.close(1009, 'On cooldown');
-    console.log(req.url);
+    console.log(ws.ip, req.url);
     if (req.url === '/realtime') {
         realtimeClients.add(ws);
         ws.on('message', () => {

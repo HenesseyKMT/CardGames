@@ -38,7 +38,9 @@ const cardsHandlers = {
             this.settings.stackPlusTwo === State.ON && has(player, CardType.PLUS_TWO) ||
             this.settings.jokerCancelsPlusTwo === State.ON && has(player, CardType.JOKER) ||
             this.settings.stackPlusFourOverPlusTwo === State.ON && has(player, CardType.PLUS_FOUR)
-        ) return;
+        ) return player.send(JSON.stringify({
+            type: PayloadType.CAN_SKIP
+        }));
         for (; this.plusCount > 0; this.plusCount--) {
             this.draw(player);
             await sleep(this.settings.drawingIntervalCooldown);
@@ -50,7 +52,9 @@ const cardsHandlers = {
         this.plusCount += 4;
         if (
             this.settings.stackPlusFour === State.ON && has(player, CardType.PLUS_FOUR)
-        ) return;
+        ) return player.send(JSON.stringify({
+            type: PayloadType.CAN_SKIP
+        }));
         for (; this.plusCount > 0; this.plusCount--) {
             this.draw(player);
             await sleep(this.settings.drawingIntervalCooldown);
@@ -75,6 +79,7 @@ const cardsHandlers = {
     }
 };
 
+// FIXME: sleep makes it so you can spam cards on top of each others -> illegal
 class UnoRoom extends Room {
     static handlers = {
         [PayloadType.HOST_START]: async function(host) {
@@ -139,11 +144,18 @@ class UnoRoom extends Room {
             const top = DECK[this.top];
             const card = DECK[cardId];
             if (!(this.turn === player.index && (
-                top.color === card.color ||
-                (card.type === CardType.NUMBER ? top.value === card.value : top.type === card.type) ||
-                card.color === CardColor.BLACK ||
-                top.color === CardColor.BLACK && card.color === this.chosenColor
-            ) || this.settings.interceptions === State.ON && (
+                this.plusCount ? top.type === CardType.PLUS_TWO && (
+                    card.type === CardType.PLUS_TWO ||
+                    card.type === CardType.JOKER
+                ) || top.type === CardType.PLUS_FOUR && (
+                    card.type === CardType.PLUS_FOUR
+                ) : (
+                    top.color === card.color ||
+                    (card.type === CardType.NUMBER ? top.value === card.value : top.type === card.type) ||
+                    card.color === CardColor.BLACK ||
+                    top.color === CardColor.BLACK && card.color === this.chosenColor
+                )
+            ) || this.settings.interceptions === State.ON && ( // +2/+4 intercepts ?
                 top.color === card.color &&
                 top.type === card.type &&
                 top.value === card.value &&

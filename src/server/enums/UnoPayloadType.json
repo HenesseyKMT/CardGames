@@ -23,5 +23,6 @@
     "SKIP": 17,
     "SAY_UNO": 18,
     "SAY_COUNTER_UNO": 19,
-    "SAID_UNO": 20
+    "SAID_UNO": 20,
+    "CAN_SKIP": 21
 }
