@@ -13,7 +13,6 @@
     let direction = 1;
 
     let discarded;
-    let drewCard = false;
 
     const colorChooser = document.getElementById('color-chooser');
     const turnSkip = document.getElementById('turn-skip');
@@ -36,10 +35,9 @@
             // Self
             case PayloadType.RECEIVE_CARD: // deck and draw
                 addCard(playerId, data);
-                if (drewCard) {
-                    drewCard = false;
-                    skip.style.opacity = 1;
-                }
+                break;
+            case PayloadType.CAN_SKIP:
+                skip.style.opacity = 1;
                 break;
             case PayloadType.CHOSEN_COLOR:
                 setCurrentColor(data);
@@ -69,6 +67,7 @@
             // Broadcast
             // NOTE: would be better to send those offer HTTP in it fails
             case PayloadType.PLAYER_DISCARDED:
+                skip.style.opacity = '';
                 removeCard(data.id, data.cardId);
                 const card = DECK[data.cardId];
                 if (card.color === CardColor.BLACK) {
@@ -139,7 +138,6 @@
 
     pile.firstElementChild.addEventListener('click', () => {
         if (playerTurn !== playerId) return;
-        drewCard = true;
         ws.send(PayloadType.DRAW_CARD);
     });
 

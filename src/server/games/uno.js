@@ -216,18 +216,30 @@ class UnoRoom extends Room {
             this.drewCard = true;
             this.draw(player);
         },
-        [PayloadType.SKIP]: function(player) {
+        [PayloadType.SKIP]: async function(player) {
             if (
-                !this.drewCard ||
                 this.waitingColorFrom ||
                 this.turn !== player.index
             ) return;
-            this.drewCard = false;
-            this.nextTurn();
-            this.broadcast({
-                type: PayloadType.GAME_TURN,
-                data: this.players[this.turn].id
-            });
+            if (this.plusCount) {
+                // NOTE: can't use card handlers otherwise plusCount doubles and gets ignored
+                for (; this.plusCount > 0; this.plusCount--) {
+                    this.draw(player);
+                    await sleep(this.settings.drawingIntervalCooldown);
+                }
+                this.nextTurn();
+                this.broadcast({
+                    type: PayloadType.GAME_TURN,
+                    data: this.players[this.turn].id
+                });
+            } else if (this.drewCard) {
+                this.drewCard = false;
+                this.nextTurn();
+                this.broadcast({
+                    type: PayloadType.GAME_TURN,
+                    data: this.players[this.turn].id
+                });
+            }
         },
         [PayloadType.SAY_UNO]: function(player) {
             if (player.saidUno || player.hand.length !== 1) return;
@@ -296,6 +308,9 @@ class UnoRoom extends Room {
         player.send(JSON.stringify({
             type: PayloadType.RECEIVE_CARD,
             data: card
+        }));
+        player.send(JSON.stringify({
+            type: PayloadType.CAN_SKIP
         }));
         this.broadcast({
             type: PayloadType.PLAYER_DREW,
